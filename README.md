@@ -140,19 +140,18 @@ creates your owner login, and builds. Uploads are stored in the database, so no 
 
 1. **Neon database** (free): at https://neon.tech sign up with GitHub and create a project (region closest to you).
 2. **Vercel** (free Hobby plan): at https://vercel.com sign up with GitHub → *Add New… → Project* → import `casita-de-juana`.
-3. In the import screen add **Environment Variables**:
+3. Add these **Environment Variables** (Settings → Environment Variables):
    | Name | Value |
    |---|---|
-   | `DATABASE_URL` | Neon connection string (the *pooled* one) |
-   | `DATABASE_URL_UNPOOLED` | Neon *direct* (non-pooled) connection string |
+   | `DATABASE_URL`, `DATABASE_URL_UNPOOLED` | set automatically when you add Neon under *Storage* |
    | `AUTH_SECRET` | any long random string (`npx auth secret`) |
    | `CRON_SECRET` | another long random string |
-   | `BOOTSTRAP_OWNER_EMAIL` | your email |
-   | `BOOTSTRAP_OWNER_PASSWORD` | a strong password (10+ chars) |
-   | `BOOTSTRAP_OWNER_NAME` | your name |
-   (Tip: *Storage → Create → Neon* inside Vercel sets the two `DATABASE_URL*` variables for you.)
-4. **Deploy.** Open the `*.vercel.app` link and sign in with the owner email/password. Then delete
-   `BOOTSTRAP_OWNER_PASSWORD` from the Vercel settings.
+   | `SETUP_CODE` | a one-time code (12+ random characters) you share privately with the owner |
+   | `BOOTSTRAP_OWNER_NAME` + `BOOTSTRAP_OWNER_PASSWORD` | *optional* dummy login: signs in as `owner@casita-setup.invalid` until the real owner claims the site |
+4. **Deploy**, open the `*.vercel.app` link, and send the owner the link plus the setup code. On first visit the login page shows
+   **"First time here? Set up the owner account"** (`/setup`): she enters the code, her name, email and password. That replaces the
+   dummy login and the setup page disappears for good. (Prefer to skip this? Set `BOOTSTRAP_OWNER_EMAIL` to a real email instead.)
+   Remove `BOOTSTRAP_OWNER_PASSWORD` from Vercel once she has set up.
 5. Optional: add a custom domain in Vercel → Settings → Domains (invite links and WhatsApp previews use the production domain
    automatically; set `APP_URL` only if you use a custom domain that Vercel doesn't list as production).
 

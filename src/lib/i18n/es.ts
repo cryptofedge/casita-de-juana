@@ -25,6 +25,24 @@ const es: Record<string, string> = {
   "Save password & continue": "Guardar contraseña y continuar",
   "Password saved. Please sign in.": "Contraseña guardada. Inicie sesión.",
 
+  // First-run setup
+  "Set up your account": "Configure su cuenta",
+  "Welcome! Create the owner login for Casita de Juana. You will need the setup code you were given.": "¡Bienvenida! Cree el acceso de propietaria de Casita de Juana. Necesitará el código de configuración que le dieron.",
+  "Setup code": "Código de configuración",
+  "Your name": "Su nombre",
+  "At least 10 characters": "Al menos 10 caracteres",
+  "Create owner account": "Crear cuenta de propietaria",
+  "First time here? Set up the owner account": "¿Primera vez? Configure la cuenta de propietaria",
+  "Enter the setup code": "Ingrese el código de configuración",
+  "Incorrect setup code.": "Código de configuración incorrecto.",
+  "Use your real email address.": "Use su correo electrónico real.",
+  "That email is already in use.": "Ese correo ya está en uso.",
+  "Too many attempts. Try again in 15 minutes.": "Demasiados intentos. Intente de nuevo en 15 minutos.",
+  "This site has already been set up. Please sign in.": "Este sitio ya fue configurado. Inicie sesión.",
+  "Account created. Please sign in.": "Cuenta creada. Inicie sesión.",
+  "Setup is turned off. Ask the person who set up the site to add a SETUP_CODE.": "La configuración está desactivada. Pida a quien instaló el sitio que agregue un SETUP_CODE.",
+  "Required": "Obligatorio",
+
   // Navigation
   "Home": "Inicio",
   "Rent": "Alquiler",

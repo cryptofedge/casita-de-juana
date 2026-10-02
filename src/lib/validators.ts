@@ -32,6 +32,16 @@ export const acceptInviteSchema = z
   })
   .refine((v) => v.password === v.confirm, { path: ["confirm"], message: "Passwords do not match" });
 
+export const setupSchema = z
+  .object({
+    code: z.string().trim().min(1, "Enter the setup code"),
+    name: z.string().trim().min(2, "Required").max(100),
+    email: z.string().trim().toLowerCase().pipe(z.email("Enter a valid email")),
+    password: z.string().min(10, "At least 10 characters").max(100),
+    confirm: z.string(),
+  })
+  .refine((v) => v.password === v.confirm, { path: ["confirm"], message: "Passwords do not match" });
+
 export const unitSchema = z.object({
   label: z.string().trim().min(1, "Required").max(10),
   floor: intStr(1, 99),
