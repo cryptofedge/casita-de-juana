@@ -9,6 +9,7 @@ import {
   Menu,
   Phone,
   Settings,
+  KeyRound,
   Users,
   Wallet,
   Wrench,
@@ -31,6 +32,7 @@ const ITEMS = [
   { href: "/admin/documents", label: "Document Vault", icon: <FolderOpen /> },
   { href: "/admin/contacts", label: "Emergency Contacts", icon: <Phone /> },
   { href: "/admin/settings", label: "Settings", icon: <Settings /> },
+  { href: "/admin/account", label: "Account", icon: <KeyRound /> },
 ];
 
 function NavList({ onNavigate }: { onNavigate?: () => void }) {

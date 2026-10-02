@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ChevronRight, FolderOpen, LogOut, Megaphone, Phone } from "lucide-react";
+import { ChevronRight, FolderOpen, KeyRound, LogOut, Megaphone, Phone } from "lucide-react";
 import { logoutAction } from "@/actions/auth";
 import { requireTenant } from "@/lib/session";
 import { getI18n } from "@/lib/i18n/server";
@@ -16,6 +16,7 @@ const LINKS = [
   { href: "/portal/notices", label: "Notice board", icon: <Megaphone className="size-5 text-primary" /> },
   { href: "/portal/documents", label: "My documents", icon: <FolderOpen className="size-5 text-primary" /> },
   { href: "/portal/contacts", label: "Emergency contacts", icon: <Phone className="size-5 text-destructive" /> },
+  { href: "/portal/account", label: "Change password", icon: <KeyRound className="size-5 text-primary" /> },
 ];
 
 export default async function More() {

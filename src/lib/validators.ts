@@ -42,6 +42,14 @@ export const setupSchema = z
   })
   .refine((v) => v.password === v.confirm, { path: ["confirm"], message: "Passwords do not match" });
 
+export const changePasswordSchema = z
+  .object({
+    current: z.string().min(1, "Enter your current password"),
+    password: z.string().min(8, "At least 8 characters").max(100),
+    confirm: z.string(),
+  })
+  .refine((v) => v.password === v.confirm, { path: ["confirm"], message: "Passwords do not match" });
+
 export const unitSchema = z.object({
   label: z.string().trim().min(1, "Required").max(10),
   floor: intStr(1, 99),

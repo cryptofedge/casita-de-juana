@@ -15,7 +15,6 @@ export const authConfig = {
     authorized({ auth, request: { nextUrl } }) {
       const path = nextUrl.pathname;
       const user = auth?.user;
-      const home = (role?: AppRole) => (role === "OWNER" ? "/admin" : "/portal");
 
       if (path.startsWith("/admin")) {
         if (!user) return false;
@@ -26,9 +25,6 @@ export const authConfig = {
         if (!user) return false;
         if (user.role !== "TENANT") return Response.redirect(new URL("/admin", nextUrl));
         return true;
-      }
-      if (path === "/login" && user) {
-        return Response.redirect(new URL(home(user.role), nextUrl));
       }
       return true;
     },

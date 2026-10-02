@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getSessionUser } from "@/lib/session";
 import { getI18n } from "@/lib/i18n/server";
 import { needsSetup } from "@/lib/setup";
 import { LoginForm } from "./login-form";
@@ -12,6 +14,9 @@ export async function generateMetadata(): Promise<Metadata> {
 export const dynamic = "force-dynamic";
 
 export default async function LoginPage() {
+  // Already signed in (and the account still exists/is active)? Go home. A stale cookie just shows the form.
+  const current = await getSessionUser();
+  if (current) redirect(current.role === "OWNER" ? "/admin" : "/portal");
   const { t } = await getI18n();
   const unclaimed = await needsSetup();
   return (

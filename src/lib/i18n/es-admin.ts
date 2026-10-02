@@ -267,6 +267,21 @@ const admin: Record<string, string> = {
   "Save settings": "Guardar configuración",
   "Saved ✓": "Guardado ✓",
 
+  // Account / change password
+  "Account": "Cuenta",
+  "Change password": "Cambiar contraseña",
+  "Signed in as {email}": "Sesión iniciada como {email}",
+  "Current password": "Contraseña actual",
+  "New password": "Nueva contraseña",
+  "Confirm new password": "Confirmar nueva contraseña",
+  "Update password": "Actualizar contraseña",
+  "Password updated ✓": "Contraseña actualizada ✓",
+  "Use a long password you do not use anywhere else.": "Use una contraseña larga que no use en ningún otro sitio.",
+  "Enter your current password": "Ingrese su contraseña actual",
+  "Current password is incorrect.": "La contraseña actual es incorrecta.",
+  "New password must be different.": "La nueva contraseña debe ser diferente.",
+  "Owners need at least 10 characters.": "La propietaria necesita al menos 10 caracteres.",
+
   // Validation messages
   "Enter an amount like 125.00": "Ingrese un monto como 125.00",
   "Must be greater than 0": "Debe ser mayor que 0",

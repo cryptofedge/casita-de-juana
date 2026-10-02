@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { appUrl } from "@/lib/app-url";
 import { runBilling } from "@/lib/billing";
-import { parseDateInput, todayLocal } from "@/lib/dates";
+import { parseDateInput, periodOf, todayLocal } from "@/lib/dates";
 import { parseForm } from "@/lib/form-server";
 import { toMinor } from "@/lib/money";
 import { assertOwner } from "@/lib/session";
@@ -113,6 +113,14 @@ export async function updateLeaseAction(fd: FormData): Promise<ActionResult> {
   const d = p.data;
   const lease = await db.lease.findUnique({ where: { id: d.leaseId } });
   if (!lease) return fail("Lease not found.");
+  // Moving the start date later is a correction: drop the rent months (and their late fees) before it,
+  // otherwise billing would keep the wrongly back-filled months on the ledger.
+  const newStart = parseDateInput(d.startDate);
+  if (periodOf(newStart) > periodOf(lease.startDate)) {
+    await db.charge.deleteMany({
+      where: { leaseId: d.leaseId, type: { in: ["RENT", "LATE_FEE"] }, period: { lt: periodOf(newStart) } },
+    });
+  }
   await db.lease.update({
     where: { id: d.leaseId },
     data: {
