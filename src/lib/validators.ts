@@ -94,6 +94,12 @@ export const paymentSchema = z.object({
   note: optional(300),
 });
 
+export const adjustBalanceSchema = z.object({
+  leaseId: z.string().min(1),
+  balance: money,
+  overdue: money,
+});
+
 export const chargeSchema = z.object({
   leaseId: z.string().min(1, "Choose a unit"),
   description: z.string().trim().min(2, "Required").max(120),

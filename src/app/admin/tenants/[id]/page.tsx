@@ -1,7 +1,7 @@
 import { getI18n } from "@/lib/i18n/server";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Pencil, Plus, Trash2, UserX } from "lucide-react";
+import { Pencil, Plus, Scale, Trash2, UserX } from "lucide-react";
 import { db } from "@/lib/db";
 import { getLeaseLedger } from "@/lib/billing";
 import { fmtDate, toDateInput, todayLocal } from "@/lib/dates";
@@ -11,7 +11,9 @@ import { moneyFormatter } from "@/lib/money";
 import { getMoneyContext } from "@/lib/settings";
 import { deleteChargeAction, deletePaymentAction } from "@/actions/finance";
 import { endLeaseAction as endLease } from "@/actions/tenants";
-import { ChargeForm, PaymentForm } from "@/components/admin/finance-forms";
+import { AdjustBalanceForm, ChargeForm, PaymentForm } from "@/components/admin/finance-forms";
+import { adjustmentBase } from "@/lib/adjust";
+import { todayLocal as todayLocalDate } from "@/lib/dates";
 import { LeaseForm, ResetLinkButton } from "@/components/admin/tenant-forms";
 import { ActionButton } from "@/components/forms/action-button";
 import { FormDialog } from "@/components/forms/form-dialog";
@@ -48,22 +50,35 @@ export default async function TenantDetail({ params }: PageProps<"/admin/tenants
   const opt = [{ id: lease.id, unit: lease.unit.label, tenant: tenant.name, currency: lease.currency }];
   const today = toDateInput(todayLocal());
   const rows = [...ledger.rows].reverse();
+  const adjBase = lease.active ? adjustmentBase(await db.charge.findMany({ where: { leaseId: lease.id } }), payments, lease.graceDays, todayLocalDate()) : null;
 
   return (
     <>
       <BackLink href="/admin/tenants">{tr("Tenants & Units")}</BackLink>
       <PageHeader
         title={tenant.name}
-        description={`Apt ${lease.unit.label} · ${tenant.email}${tenant.phone ? ` · ${tenant.phone}` : ""}`}
+        description={`${tr("Apt {unit}", { unit: lease.unit.label })} · ${tenant.email}${tenant.phone ? ` · ${tenant.phone}` : ""}`}
         actions={
           lease.active ? (
             <>
-              <FormDialog trigger={<Button><Plus /> Record payment</Button>} title="Record a payment">
+              <FormDialog trigger={<Button><Plus /> {tr("Record payment")}</Button>} title="Record a payment">
                 <PaymentForm leases={opt} defaultLeaseId={lease.id} today={today} />
               </FormDialog>
-              <FormDialog trigger={<Button variant="outline"><Plus /> Add charge</Button>} title="Add a one-off charge">
+              <FormDialog trigger={<Button variant="outline"><Plus /> {tr("Add charge")}</Button>} title="Add a one-off charge">
                 <ChargeForm leases={opt} today={today} />
               </FormDialog>
+              {adjBase && (
+                <FormDialog trigger={<Button variant="outline"><Scale /> {tr("Adjust balance")}</Button>} title="Adjust balance" description="Set the total balance and the overdue amount directly.">
+                  <AdjustBalanceForm
+                    leaseId={lease.id}
+                    currency={lease.currency}
+                    balance={(ledger.balance / 100).toFixed(2)}
+                    overdue={(ledger.overdue / 100).toFixed(2)}
+                    baseBalance={m(adjBase.balance, lease.currency)}
+                    baseOverdue={m(adjBase.overdue, lease.currency)}
+                  />
+                </FormDialog>
+              )}
             </>
           ) : (
             <Badge tone="gray">{tr("Lease ended {date}", { date: fmtDate(lease.endDate, locale) })}</Badge>

@@ -282,6 +282,23 @@ const admin: Record<string, string> = {
   "New password must be different.": "La nueva contraseña debe ser diferente.",
   "Owners need at least 10 characters.": "La propietaria necesita al menos 10 caracteres.",
 
+  // Adjust balance
+  "Adjust balance": "Ajustar saldo",
+  "Set the total balance and the overdue amount directly.": "Establezca directamente el saldo total y el monto vencido.",
+  "Total balance ({cur})": "Saldo total ({cur})",
+  "Overdue part ({cur})": "Parte vencida ({cur})",
+  "Everything the tenant owes right now, overdue or not.": "Todo lo que el inquilino debe ahora, vencido o no.",
+  "The portion of the balance that is already past due.": "La parte del saldo que ya está vencida.",
+  "Without adjustments the ledger shows {balance} total, {overdue} overdue. The app adds labelled “Balance adjustment” lines for the difference. You can delete them from the ledger at any time.":
+    "Sin ajustes, el libro muestra {balance} en total, {overdue} vencido. La app agrega líneas «Ajuste de saldo» por la diferencia. Puede eliminarlas del libro en cualquier momento.",
+  "Save balance": "Guardar saldo",
+  "Balance adjustment (overdue)": "Ajuste de saldo (vencido)",
+  "Balance adjustment (not yet due)": "Ajuste de saldo (aún no vence)",
+  "Overdue cannot be more than the total balance.": "Lo vencido no puede ser mayor que el saldo total.",
+  "This tenant has a credit on the account. Record payments or charges instead.": "Este inquilino tiene saldo a favor. Registre pagos o cargos en su lugar.",
+  "Overdue is lower than what the ledger already shows. Remove a charge or record a payment instead.": "Lo vencido es menor de lo que ya muestra el libro. Elimine un cargo o registre un pago en su lugar.",
+  "Total balance is lower than what the ledger already shows. Remove a charge or record a payment instead.": "El saldo total es menor de lo que ya muestra el libro. Elimine un cargo o registre un pago en su lugar.",
+
   // Validation messages
   "Enter an amount like 125.00": "Ingrese un monto como 125.00",
   "Must be greater than 0": "Debe ser mayor que 0",

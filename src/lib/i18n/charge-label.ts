@@ -21,6 +21,6 @@ export function chargeLabel(
     case "LATE_FEE":
       return `${t("Late fee")} - ${p}${/waived/i.test(r.description) ? ` (${t("waived")})` : ""}`;
     default:
-      return r.description;
+      return t(r.description); // e.g. "Balance adjustment (overdue)"; free text passes through unchanged
   }
 }

@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
-import { addChargeAction, recordPaymentAction } from "@/actions/finance";
+import { addChargeAction, adjustBalanceAction, recordPaymentAction } from "@/actions/finance";
 import { useActionForm } from "@/components/forms/use-action-form";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { FileField } from "@/components/forms/file-field";
 import { Field, FormError, Input, Select, Textarea } from "@/components/ui/form-controls";
 import { PAYMENT_METHOD_LABEL } from "@/lib/labels";
-import { chargeSchema, paymentSchema } from "@/lib/validators";
+import { adjustBalanceSchema, chargeSchema, paymentSchema } from "@/lib/validators";
 import { toDateInput } from "@/lib/dates";
 import { useT } from "@/lib/i18n/provider";
 
@@ -104,6 +104,48 @@ export function ChargeForm({ leases, today }: { leases: LeaseOption[]; today: st
         </Field>
       </div>
       <SubmitButton pending={pending} className="w-full">{t("Add charge")}</SubmitButton>
+    </form>
+  );
+}
+
+export function AdjustBalanceForm({
+  leaseId,
+  currency,
+  balance,
+  overdue,
+  baseBalance,
+  baseOverdue,
+}: {
+  leaseId: string;
+  currency: "USD" | "DOP";
+  /** current values (major units, e.g. "410.00") */
+  balance: string;
+  overdue: string;
+  /** what the ledger shows with no adjustment lines (formatted for display) */
+  baseBalance: string;
+  baseOverdue: string;
+}) {
+  const { t } = useT();
+  const { form, submit, pending, serverError, err } = useActionForm({
+    schema: adjustBalanceSchema,
+    defaultValues: { leaseId, balance, overdue },
+    action: adjustBalanceAction,
+    resetOnSuccess: false,
+  });
+  return (
+    <form method="post" onSubmit={submit} className="space-y-4" noValidate>
+      <FormError message={serverError} />
+      <input type="hidden" {...form.register("leaseId")} />
+      <Field label={t("Total balance ({cur})", { cur: currency })} htmlFor="adj-balance" error={err("balance")} hint="Everything the tenant owes right now, overdue or not.">
+        <Input id="adj-balance" inputMode="decimal" {...form.register("balance")} />
+      </Field>
+      <Field label={t("Overdue part ({cur})", { cur: currency })} htmlFor="adj-overdue" error={err("overdue")} hint="The portion of the balance that is already past due.">
+        <Input id="adj-overdue" inputMode="decimal" {...form.register("overdue")} />
+      </Field>
+      <p className="rounded-lg bg-info-soft px-3 py-2 text-xs text-muted-foreground">
+        {t("Without adjustments the ledger shows {balance} total, {overdue} overdue. The app adds labelled “Balance adjustment” lines for the difference. You can delete them from the ledger at any time.", { balance: baseBalance, overdue: baseOverdue })}
+      </p>
+      <SubmitButton pending={pending} className="w-full">{t("Save balance")}</SubmitButton>
     </form>
   );
 }
