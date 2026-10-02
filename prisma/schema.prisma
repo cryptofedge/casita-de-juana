@@ -1,0 +1,281 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  OWNER
+  TENANT
+}
+
+enum Currency {
+  USD
+  DOP
+}
+
+enum ChargeType {
+  RENT
+  ELECTRICITY
+  LATE_FEE
+  OTHER
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  PAYPAL
+  STRIPE
+}
+
+enum TicketCategory {
+  PLUMBING
+  ELECTRICAL
+  STRUCTURAL
+  COMPLAINT
+  IMPROVEMENT_IDEA
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  URGENT
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum DocumentType {
+  LEASE
+  HOUSE_RULES
+  ID
+  OTHER
+}
+
+enum ContactCategory {
+  EMERGENCY
+  PLUMBER
+  ELECTRICIAN
+  OTHER
+}
+
+model User {
+  id             String    @id @default(cuid())
+  name           String
+  email          String    @unique
+  phone          String?
+  passwordHash   String?
+  role           Role      @default(TENANT)
+  active         Boolean   @default(true)
+  inviteToken    String?   @unique
+  inviteExpires  DateTime?
+  createdAt      DateTime  @default(now())
+
+  leases         Lease[]
+  tickets        Ticket[]
+  messages       TicketMessage[]
+  announcements  Announcement[]
+  documents      Document[]      @relation("DocumentTenant")
+}
+
+model Unit {
+  id        String   @id @default(cuid())
+  label     String   @unique // "1", "2A", "2B"
+  floor     Int
+  bedrooms  Int      @default(1)
+  notes     String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  leases    Lease[]
+  readings  MeterReading[]
+  tickets   Ticket[]
+}
+
+model Lease {
+  id             String   @id @default(cuid())
+  unitId         String
+  tenantId       String
+  startDate      DateTime
+  endDate        DateTime?
+  monthlyRent    Int      // minor units (cents / centavos)
+  currency       Currency @default(USD)
+  dueDay         Int      @default(1)
+  graceDays      Int      @default(5)
+  lateFeeFlat    Int      @default(0) // minor units, same currency as lease
+  lateFeePercent Float    @default(0) // % of the unpaid rent
+  deposit        Int      @default(0)
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  unit     Unit      @relation(fields: [unitId], references: [id])
+  tenant   User      @relation(fields: [tenantId], references: [id])
+  charges  Charge[]
+  payments Payment[]
+
+  @@index([unitId, active])
+  @@index([tenantId])
+}
+
+model Charge {
+  id             String     @id @default(cuid())
+  leaseId        String
+  type           ChargeType
+  period         String     // "YYYY-MM"
+  description    String
+  amount         Int        // minor units, lease currency
+  dueDate        DateTime
+  parentChargeId String?    @unique // set for LATE_FEE: makes late fees idempotent
+  key            String?    @unique // idempotency key, e.g. rent:<leaseId>:2026-10
+  createdAt      DateTime   @default(now())
+
+  lease    Lease         @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  reading  MeterReading?
+
+  @@index([leaseId, dueDate])
+}
+
+model Payment {
+  id         String        @id @default(cuid())
+  leaseId    String
+  amount     Int           // minor units, lease currency
+  method     PaymentMethod
+  paidAt     DateTime
+  reference  String?
+  note       String?
+  receiptId  String?
+  recordedBy String?
+  createdAt  DateTime      @default(now())
+
+  lease   Lease      @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  receipt FileAsset? @relation(fields: [receiptId], references: [id])
+
+  @@index([leaseId, paidAt])
+}
+
+model MeterReading {
+  id           String   @id @default(cuid())
+  unitId       String
+  period       String   // "YYYY-MM"
+  previousKwh  Float
+  currentKwh   Float
+  ratePerKwh   Float    // currency units per kWh
+  currency     Currency @default(USD)
+  subtotal     Int      // minor units
+  dueDate      DateTime
+  readingDate  DateTime @default(now())
+  photoId      String?
+  chargeId     String?  @unique
+  createdAt    DateTime @default(now())
+
+  unit   Unit       @relation(fields: [unitId], references: [id])
+  photo  FileAsset? @relation(fields: [photoId], references: [id])
+  charge Charge?    @relation(fields: [chargeId], references: [id])
+
+  @@unique([unitId, period])
+}
+
+model Ticket {
+  id          String         @id @default(cuid())
+  unitId      String
+  createdById String
+  category    TicketCategory
+  priority    TicketPriority @default(MEDIUM)
+  status      TicketStatus   @default(OPEN)
+  title       String
+  description String
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  unit        Unit               @relation(fields: [unitId], references: [id])
+  createdBy   User               @relation(fields: [createdById], references: [id])
+  messages    TicketMessage[]
+  attachments TicketAttachment[]
+
+  @@index([status])
+  @@index([createdById])
+}
+
+model TicketMessage {
+  id          String   @id @default(cuid())
+  ticketId    String
+  authorId    String
+  body        String
+  createdAt   DateTime @default(now())
+
+  ticket      Ticket             @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author      User               @relation(fields: [authorId], references: [id])
+  attachments TicketAttachment[]
+}
+
+model TicketAttachment {
+  id        String  @id @default(cuid())
+  ticketId  String
+  messageId String?
+  fileId    String
+
+  ticket  Ticket         @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  message TicketMessage? @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  file    FileAsset      @relation(fields: [fileId], references: [id])
+}
+
+model Announcement {
+  id        String    @id @default(cuid())
+  title     String
+  body      String
+  pinned    Boolean   @default(false)
+  authorId  String
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  author User @relation(fields: [authorId], references: [id])
+}
+
+model Document {
+  id        String       @id @default(cuid())
+  title     String
+  type      DocumentType
+  fileId    String
+  tenantId  String?      // null = shared with every tenant (e.g. house rules)
+  createdAt DateTime     @default(now())
+
+  file   FileAsset @relation(fields: [fileId], references: [id])
+  tenant User?     @relation("DocumentTenant", fields: [tenantId], references: [id])
+}
+
+model Contact {
+  id        String          @id @default(cuid())
+  name      String
+  role      String?
+  category  ContactCategory @default(OTHER)
+  phone     String
+  notes     String?
+  sortOrder Int             @default(0)
+}
+
+model FileAsset {
+  id         String   @id @default(cuid())
+  path       String   // relative to UPLOAD_DIR
+  filename   String
+  mime       String
+  size       Int
+  uploadedBy String?
+  createdAt  DateTime @default(now())
+
+  payments    Payment[]
+  readings    MeterReading[]
+  attachments TicketAttachment[]
+  documents   Document[]
+}
+
+model Setting {
+  key   String @id
+  value String
+}

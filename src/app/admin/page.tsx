@@ -1,0 +1,184 @@
+import Link from "next/link";
+import type { Metadata } from "next";
+import { AlertTriangle, Building2, Wallet, Wrench, TrendingUp } from "lucide-react";
+import { db } from "@/lib/db";
+import { runBillingThrottled } from "@/lib/billing";
+import { addMonths, currentPeriod, fmtDate, fmtPeriod, periodEnd, periodStart, todayLocal } from "@/lib/dates";
+import { buildLedger } from "@/lib/ledger";
+import { convert, moneyFormatter } from "@/lib/money";
+import { CATEGORY_LABEL } from "@/lib/labels";
+import { getMoneyContext } from "@/lib/settings";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PaymentStatusBadge, PriorityBadge, TicketStatusBadge } from "@/components/ui/badge";
+import { EmptyState, PageHeader, Stat } from "@/components/shared/page";
+
+export const metadata: Metadata = { title: "Dashboard" };
+export const dynamic = "force-dynamic";
+
+export default async function AdminDashboard() {
+  await runBillingThrottled();
+  const { display, rate } = await getMoneyContext();
+  const m = moneyFormatter(display, rate);
+  const today = todayLocal();
+  const nowP = currentPeriod();
+
+  const [units, leases, tickets, recentPayments] = await Promise.all([
+    db.unit.findMany({ where: { active: true }, orderBy: [{ floor: "asc" }, { label: "asc" }] }),
+    db.lease.findMany({ where: { active: true }, include: { tenant: true, charges: true, payments: true } }),
+    db.ticket.findMany({
+      where: { status: { in: ["OPEN", "IN_PROGRESS"] } },
+      include: { unit: true },
+      orderBy: [{ createdAt: "desc" }],
+    }),
+    db.payment.findMany({
+      where: { paidAt: { gte: periodStart(addMonths(nowP, -5)) } },
+      include: { lease: true },
+    }),
+  ]);
+
+  const cv = (amt: number, cur: "USD" | "DOP") => convert(amt, cur, display, rate);
+  const ledgers = leases.map((l) => ({ lease: l, ledger: buildLedger(l.charges, l.payments, today, l.graceDays) }));
+
+  const collectedThisMonth = recentPayments
+    .filter((p) => p.paidAt >= periodStart(nowP) && p.paidAt < periodEnd(nowP))
+    .reduce((s, p) => s + cv(p.amount, p.lease.currency), 0);
+  const outstanding = ledgers.reduce((s, x) => s + Math.max(0, cv(x.ledger.balance, x.lease.currency)), 0);
+  const overdue = ledgers.reduce((s, x) => s + cv(x.ledger.overdue, x.lease.currency), 0);
+  const expectedRent = leases.reduce((s, l) => s + cv(l.monthlyRent, l.currency), 0);
+  const occupied = new Set(leases.map((l) => l.unitId)).size;
+  const occupancy = units.length ? Math.round((occupied / units.length) * 100) : 0;
+  const urgent = tickets.filter((t) => t.priority === "URGENT").length;
+
+  // Collected per month, last 6 months
+  const months = Array.from({ length: 6 }, (_, i) => addMonths(nowP, i - 5));
+  const series = months.map((p) => ({
+    p,
+    total: recentPayments
+      .filter((x) => x.paidAt >= periodStart(p) && x.paidAt < periodEnd(p))
+      .reduce((s, x) => s + cv(x.amount, x.lease.currency), 0),
+  }));
+  const max = Math.max(1, ...series.map((s) => s.total));
+
+  const leaseByUnit = new Map(ledgers.map((x) => [x.lease.unitId, x]));
+
+  return (
+    <>
+      <PageHeader title="Dashboard" description={`${fmtPeriod(nowP)} · amounts shown in ${display}`} />
+
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Stat label="Collected this month" value={m(collectedThisMonth, display)} sub={`of ${m(expectedRent, display)} monthly rent`} tone="good" icon={<Wallet className="size-4" />} />
+        <Stat
+          label="Outstanding balance"
+          value={m(outstanding, display)}
+          sub={overdue > 0 ? `${m(overdue, display)} overdue` : "Nothing overdue"}
+          tone={overdue > 0 ? "bad" : "default"}
+          icon={<AlertTriangle className="size-4" />}
+        />
+        <Stat label="Active maintenance" value={tickets.length} sub={urgent ? `${urgent} urgent` : "None urgent"} tone={urgent ? "warn" : "default"} icon={<Wrench className="size-4" />} />
+        <Stat label="Occupancy" value={`${occupancy}%`} sub={`${occupied} of ${units.length} units rented`} icon={<Building2 className="size-4" />} />
+      </div>
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-5">
+        <section className="lg:col-span-3">
+          <h2 className="mb-3 text-lg font-semibold">Units</h2>
+          <div className="space-y-3">
+            {units.map((u) => {
+              const x = leaseByUnit.get(u.id);
+              // Worst open status wins: an overdue charge beats this month's "pending".
+              const rentRow =
+                x?.ledger.rows.find((r) => r.status === "OVERDUE") ??
+                x?.ledger.rows.find((r) => r.type === "RENT" && r.period === nowP);
+              const open = x ? cv(x.ledger.balance, x.lease.currency) : 0;
+              return (
+                <Card key={u.id} className="flex items-center gap-4 p-4">
+                  <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-info-soft font-display text-lg font-semibold text-primary">
+                    {u.label}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    {x ? (
+                      <>
+                        <Link href={`/admin/tenants/${x.lease.tenantId}`} className="font-semibold hover:underline">
+                          {x.lease.tenant.name}
+                        </Link>
+                        <div className="text-sm text-muted-foreground">
+                          {m(x.lease.monthlyRent, x.lease.currency)}/mo · due day {x.lease.dueDay}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="font-semibold">Vacant</div>
+                        <Link href="/admin/tenants" className="text-sm text-primary hover:underline">
+                          Invite a tenant
+                        </Link>
+                      </>
+                    )}
+                  </div>
+                  {x && (
+                    <div className="text-right">
+                      {rentRow && <PaymentStatusBadge status={rentRow.status} />}
+                      <div className={`mt-1 text-sm font-semibold ${open > 0 ? "text-destructive" : "text-success"}`}>
+                        {open > 0 ? `${m(open, display)} due` : open < 0 ? `${m(-open, display)} credit` : "Settled"}
+                      </div>
+                    </div>
+                  )}
+                </Card>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="size-5 text-primary" /> Collected, last 6 months
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex h-40 items-end gap-2" role="img" aria-label="Bar chart of payments collected per month">
+                {series.map((s) => (
+                  <div key={s.p} className="flex flex-1 flex-col items-center gap-1">
+                    <div className="text-[10px] font-medium text-muted-foreground">{s.total ? m(s.total, display).replace(/\.\d\d$/, "") : ""}</div>
+                    <div className="w-full rounded-t-md bg-primary/80" style={{ height: `${Math.max(2, (s.total / max) * 100)}px` }} />
+                    <div className="text-[11px] text-muted-foreground">{fmtPeriod(s.p).slice(0, 3)}</div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+      </div>
+
+      <section className="mt-6">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Open maintenance requests</h2>
+          <Link href="/admin/maintenance" className="text-sm font-medium text-primary hover:underline">
+            View all
+          </Link>
+        </div>
+        {tickets.length === 0 ? (
+          <EmptyState title="All clear" >No open requests.</EmptyState>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {tickets.slice(0, 6).map((t) => (
+              <Link key={t.id} href={`/admin/maintenance/${t.id}`}>
+                <Card className="p-4 transition-shadow hover:shadow-md">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="font-semibold">{t.title}</div>
+                    <PriorityBadge priority={t.priority} />
+                  </div>
+                  <div className="mt-1 text-sm text-muted-foreground">
+                    Apt {t.unit.label} · {CATEGORY_LABEL[t.category]} · {fmtDate(t.createdAt)}
+                  </div>
+                  <div className="mt-2">
+                    <TicketStatusBadge status={t.status} />
+                  </div>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+    </>
+  );
+}

@@ -1,26 +1,118 @@
 @import "tailwindcss";
 
+/* Casita de Juana palette, sampled from the logo: lagoon teal, clay roof,
+   hibiscus gold, palm green, sandy cream. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fbf7ee;
+  --foreground: #17313a;
+  --card: #ffffff;
+  --card-foreground: #17313a;
+  --primary: #19778a;
+  --primary-foreground: #ffffff;
+  --secondary: #f1e8d4;
+  --secondary-foreground: #3b4a4e;
+  --muted: #f3ecdb;
+  --muted-foreground: #5b6b6f;
+  --accent: #b6502f;
+  --accent-foreground: #ffffff;
+  --gold: #f0a030;
+  --success: #2f7d44;
+  --success-soft: #e2f1e6;
+  --warning-soft: #fdf0d3;
+  --info-soft: #dcf0f3;
+  --destructive: #b3342f;
+  --destructive-soft: #f9e0de;
+  --border: #e6dcc6;
+  --input: #d9cdb2;
+  --ring: #19778a;
+  --radius: 0.75rem;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-gold: var(--gold);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning-soft: var(--warning-soft);
+  --color-info-soft: var(--info-soft);
+  --color-destructive: var(--destructive);
+  --color-destructive-soft: var(--destructive-soft);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: var(--border);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Keep iOS from zooming into inputs on focus */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+@media (min-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 14px;
+  }
+}
+
+/* Printable financial statement */
+@media print {
+  @page {
+    margin: 14mm;
+  }
+  body {
+    background: #fff;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-area {
+    box-shadow: none !important;
+    border: none !important;
+  }
+}
+
+.safe-bottom {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
 }
