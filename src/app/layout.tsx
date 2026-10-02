@@ -6,6 +6,17 @@ const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 const fraunces = Fraunces({ variable: "--font-fraunces", subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  // Absolute base so share previews (WhatsApp, iMessage, Facebook) get full image URLs.
+  metadataBase: new URL(process.env.APP_URL || "http://localhost:3000"),
+  openGraph: {
+    type: "website",
+    siteName: "Casita de Juana",
+    title: "Casita de Juana",
+    description: "Portal de inquilinos · Tenant portal — Ortega, Dominican Republic",
+    locale: "es_DO",
+    alternateLocale: ["en_US"],
+  },
+  twitter: { card: "summary_large_image", title: "Casita de Juana" },
   title: { default: "Casita de Juana", template: "%s · Casita de Juana" },
   description: "Property management and tenant portal for Casita de Juana, Ortega, Dominican Republic.",
   applicationName: "Casita de Juana",
