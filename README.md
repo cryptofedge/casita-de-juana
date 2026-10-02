@@ -108,7 +108,7 @@ remembered in a cookie; first visit follows the browser (`Accept-Language`). The
   access immediately.
 - **Tenant scoping**: every tenant query derives the lease/unit/user from the *session*, never from URL or form
   values. Another tenant's ticket URL → 404.
-- **Files** are never public. They live in `UPLOAD_DIR` and are served only through `/api/files/[id]`, which checks
+- **Files** are never public. They are stored in PostgreSQL and served only through `/api/files/[id]`, which checks
   that the signed-in user may see that exact file (`Cache-Control: no-store`). Uploads are limited to JPG/PNG/WebP/HEIC/PDF,
   4 MB, with **magic-byte sniffing** (a renamed `.exe`/HTML is rejected).
 - Passwords: bcrypt (cost 12), ≥ 8 chars; login has a per-email brute-force limiter (in-memory — add a shared limiter if
