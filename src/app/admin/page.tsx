@@ -1,3 +1,4 @@
+import { getI18n } from "@/lib/i18n/server";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { AlertTriangle, Building2, Wallet, Wrench, TrendingUp } from "lucide-react";
@@ -12,10 +13,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PaymentStatusBadge, PriorityBadge, TicketStatusBadge } from "@/components/ui/badge";
 import { EmptyState, PageHeader, Stat } from "@/components/shared/page";
 
-export const metadata: Metadata = { title: "Dashboard" };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t("Dashboard") };
+}
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
+  const { t: tr, locale } = await getI18n();
   await runBillingThrottled();
   const { display, rate } = await getMoneyContext();
   const m = moneyFormatter(display, rate);
@@ -63,24 +68,24 @@ export default async function AdminDashboard() {
 
   return (
     <>
-      <PageHeader title="Dashboard" description={`${fmtPeriod(nowP)} · amounts shown in ${display}`} />
+      <PageHeader title={tr("Dashboard")} description={tr("{period} · amounts shown in {cur}", { period: fmtPeriod(nowP, locale), cur: display })} />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Collected this month" value={m(collectedThisMonth, display)} sub={`of ${m(expectedRent, display)} monthly rent`} tone="good" icon={<Wallet className="size-4" />} />
+        <Stat label={tr("Collected this month")} value={m(collectedThisMonth, display)} sub={tr("of {amount} monthly rent", { amount: m(expectedRent, display) })} tone="good" icon={<Wallet className="size-4" />} />
         <Stat
-          label="Outstanding balance"
+          label={tr("Outstanding balance")}
           value={m(outstanding, display)}
-          sub={overdue > 0 ? `${m(overdue, display)} overdue` : "Nothing overdue"}
+          sub={overdue > 0 ? tr("{amount} overdue", { amount: m(overdue, display) }) : tr("Nothing overdue")}
           tone={overdue > 0 ? "bad" : "default"}
           icon={<AlertTriangle className="size-4" />}
         />
-        <Stat label="Active maintenance" value={tickets.length} sub={urgent ? `${urgent} urgent` : "None urgent"} tone={urgent ? "warn" : "default"} icon={<Wrench className="size-4" />} />
-        <Stat label="Occupancy" value={`${occupancy}%`} sub={`${occupied} of ${units.length} units rented`} icon={<Building2 className="size-4" />} />
+        <Stat label={tr("Active maintenance")} value={tickets.length} sub={urgent ? tr("{n} urgent", { n: urgent }) : tr("None urgent")} tone={urgent ? "warn" : "default"} icon={<Wrench className="size-4" />} />
+        <Stat label={tr("Occupancy")} value={`${occupancy}%`} sub={tr("{a} of {b} units rented", { a: occupied, b: units.length })} icon={<Building2 className="size-4" />} />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-5">
         <section className="lg:col-span-3">
-          <h2 className="mb-3 text-lg font-semibold">Units</h2>
+          <h2 className="mb-3 text-lg font-semibold">{tr("Units")}</h2>
           <div className="space-y-3">
             {units.map((u) => {
               const x = leaseByUnit.get(u.id);
@@ -101,14 +106,14 @@ export default async function AdminDashboard() {
                           {x.lease.tenant.name}
                         </Link>
                         <div className="text-sm text-muted-foreground">
-                          {m(x.lease.monthlyRent, x.lease.currency)}/mo · due day {x.lease.dueDay}
+                          {tr("{amount}/mo · due day {day}", { amount: m(x.lease.monthlyRent, x.lease.currency), day: x.lease.dueDay })}
                         </div>
                       </>
                     ) : (
                       <>
-                        <div className="font-semibold">Vacant</div>
+                        <div className="font-semibold">{tr("Vacant")}</div>
                         <Link href="/admin/tenants" className="text-sm text-primary hover:underline">
-                          Invite a tenant
+                          {tr("Invite a tenant")}
                         </Link>
                       </>
                     )}
@@ -117,7 +122,7 @@ export default async function AdminDashboard() {
                     <div className="text-right">
                       {rentRow && <PaymentStatusBadge status={rentRow.status} />}
                       <div className={`mt-1 text-sm font-semibold ${open > 0 ? "text-destructive" : "text-success"}`}>
-                        {open > 0 ? `${m(open, display)} due` : open < 0 ? `${m(-open, display)} credit` : "Settled"}
+                        {open > 0 ? tr("{amount} due", { amount: m(open, display) }) : open < 0 ? tr("{amount} credit", { amount: m(-open, display) }) : tr("Settled")}
                       </div>
                     </div>
                   )}
@@ -131,16 +136,16 @@ export default async function AdminDashboard() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="size-5 text-primary" /> Collected, last 6 months
+                <TrendingUp className="size-5 text-primary" /> {tr("Collected, last 6 months")}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex h-40 items-end gap-2" role="img" aria-label="Bar chart of payments collected per month">
+              <div className="flex h-40 items-end gap-2" role="img" aria-label={tr("Bar chart of payments collected per month")}>
                 {series.map((s) => (
                   <div key={s.p} className="flex flex-1 flex-col items-center gap-1">
                     <div className="text-[10px] font-medium text-muted-foreground">{s.total ? m(s.total, display).replace(/\.\d\d$/, "") : ""}</div>
                     <div className="w-full rounded-t-md bg-primary/80" style={{ height: `${Math.max(2, (s.total / max) * 100)}px` }} />
-                    <div className="text-[11px] text-muted-foreground">{fmtPeriod(s.p).slice(0, 3)}</div>
+                    <div className="text-[11px] text-muted-foreground">{fmtPeriod(s.p, locale).slice(0, 3)}</div>
                   </div>
                 ))}
               </div>
@@ -151,13 +156,13 @@ export default async function AdminDashboard() {
 
       <section className="mt-6">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Open maintenance requests</h2>
+          <h2 className="text-lg font-semibold">{tr("Open maintenance requests")}</h2>
           <Link href="/admin/maintenance" className="text-sm font-medium text-primary hover:underline">
-            View all
+            {tr("View all")}
           </Link>
         </div>
         {tickets.length === 0 ? (
-          <EmptyState title="All clear" >No open requests.</EmptyState>
+          <EmptyState title={tr("All clear")}>{tr("No open requests.")}</EmptyState>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {tickets.slice(0, 6).map((t) => (
@@ -168,7 +173,7 @@ export default async function AdminDashboard() {
                     <PriorityBadge priority={t.priority} />
                   </div>
                   <div className="mt-1 text-sm text-muted-foreground">
-                    Apt {t.unit.label} · {CATEGORY_LABEL[t.category]} · {fmtDate(t.createdAt)}
+                    {tr("Apt {unit}", { unit: t.unit.label })} · {tr(CATEGORY_LABEL[t.category])} · {fmtDate(t.createdAt, locale)}
                   </div>
                   <div className="mt-2">
                     <TicketStatusBadge status={t.status} />

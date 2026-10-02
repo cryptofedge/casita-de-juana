@@ -1,4 +1,7 @@
+"use client";
+
 import * as React from "react";
+import { useT } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
 import { PAYMENT_STATUS_LABEL, PRIORITY_LABEL, STATUS_LABEL } from "@/lib/labels";
 
@@ -28,15 +31,18 @@ export function Badge({
 
 const PAY_TONE: Record<string, Tone> = { PAID: "green", PENDING: "amber", PARTIAL: "teal", OVERDUE: "red" };
 export function PaymentStatusBadge({ status, label }: { status: string; label?: string }) {
-  return <Badge tone={PAY_TONE[status] ?? "gray"}>{label ?? PAYMENT_STATUS_LABEL[status] ?? status}</Badge>;
+  const { t } = useT();
+  return <Badge tone={PAY_TONE[status] ?? "gray"}>{label ?? t(PAYMENT_STATUS_LABEL[status] ?? status)}</Badge>;
 }
 
 const TICKET_TONE: Record<string, Tone> = { OPEN: "amber", IN_PROGRESS: "teal", RESOLVED: "green", CLOSED: "gray" };
 export function TicketStatusBadge({ status, label }: { status: string; label?: string }) {
-  return <Badge tone={TICKET_TONE[status] ?? "gray"}>{label ?? STATUS_LABEL[status] ?? status}</Badge>;
+  const { t } = useT();
+  return <Badge tone={TICKET_TONE[status] ?? "gray"}>{label ?? t(STATUS_LABEL[status] ?? status)}</Badge>;
 }
 
 const PRIO_TONE: Record<string, Tone> = { LOW: "gray", MEDIUM: "amber", URGENT: "red" };
 export function PriorityBadge({ priority, label }: { priority: string; label?: string }) {
-  return <Badge tone={PRIO_TONE[priority] ?? "gray"}>{label ?? PRIORITY_LABEL[priority] ?? priority}</Badge>;
+  const { t } = useT();
+  return <Badge tone={PRIO_TONE[priority] ?? "gray"}>{label ?? t(PRIORITY_LABEL[priority] ?? priority)}</Badge>;
 }

@@ -4,14 +4,16 @@ import { useTransition } from "react";
 import { setCurrencyAction } from "@/actions/auth";
 import { cn } from "@/lib/utils";
 import type { CurrencyCode } from "@/lib/money";
+import { useT } from "@/lib/i18n/provider";
 
 /** USD / DOP display switch. Amounts are converted using the owner-set exchange rate. */
 export function CurrencyToggle({ value }: { value: CurrencyCode }) {
+  const { t } = useT();
   const [pending, start] = useTransition();
   return (
     <div
       role="group"
-      aria-label="Display currency"
+      aria-label={t("Display currency")}
       className={cn("inline-flex rounded-full border bg-card p-0.5 text-xs font-semibold", pending && "opacity-60")}
     >
       {(["USD", "DOP"] as const).map((c) => (

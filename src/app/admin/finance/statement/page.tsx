@@ -1,3 +1,4 @@
+import { getI18n } from "@/lib/i18n/server";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { currentPeriod, fmtDate, fmtPeriod } from "@/lib/dates";
@@ -8,10 +9,14 @@ import { buildStatement } from "@/lib/statement";
 import { Logo } from "@/components/shared/brand";
 import { PrintButton } from "./print-button";
 
-export const metadata: Metadata = { title: "Financial statement" };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t("Financial statement") };
+}
 export const dynamic = "force-dynamic";
 
 export default async function StatementPage({ searchParams }: PageProps<"/admin/finance/statement">) {
+  const { t: tr, locale } = await getI18n();
   const sp = await searchParams;
   const raw = typeof sp.month === "string" ? sp.month : "";
   const month = /^\d{4}-(0[1-9]|1[0-2])$/.test(raw) ? raw : currentPeriod();
@@ -22,7 +27,7 @@ export default async function StatementPage({ searchParams }: PageProps<"/admin/
   return (
     <div>
       <div className="no-print mb-4 flex items-center justify-between">
-        <Link href={`/admin/finance?month=${month}`} className="text-sm font-medium text-primary hover:underline">← Back</Link>
+        <Link href={`/admin/finance?month=${month}`} className="text-sm font-medium text-primary hover:underline">← {tr("Back")}</Link>
         <PrintButton />
       </div>
       <article className="print-area rounded-xl border bg-white p-6 shadow-sm sm:p-8">
@@ -35,17 +40,17 @@ export default async function StatementPage({ searchParams }: PageProps<"/admin/
             </div>
           </div>
           <div className="text-right">
-            <div className="font-display text-lg font-semibold">Financial statement</div>
-            <div className="text-sm">{fmtPeriod(month)}</div>
+            <div className="font-display text-lg font-semibold">{tr("Financial statement")}</div>
+            <div className="text-sm">{fmtPeriod(month, locale)}</div>
             <div className="text-xs text-muted-foreground">{display} · 1 USD = {rate} DOP</div>
           </div>
         </header>
 
-        <h2 className="mb-2 mt-6 text-base font-semibold">Summary by unit</h2>
+        <h2 className="mb-2 mt-6 text-base font-semibold">{tr("Summary by unit")}</h2>
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b text-left text-xs uppercase text-muted-foreground">
-              <th className="py-2">Unit</th><th>Tenant</th><th className="text-right">Opening</th><th className="text-right">Billed</th><th className="text-right">Paid</th><th className="text-right">Closing</th>
+              <th className="py-2">{tr("Unit")}</th><th>{tr("Tenant")}</th><th className="text-right">{tr("Opening")}</th><th className="text-right">{tr("Billed")}</th><th className="text-right">{tr("Paid")}</th><th className="text-right">{tr("Closing")}</th>
             </tr>
           </thead>
           <tbody>
@@ -59,7 +64,7 @@ export default async function StatementPage({ searchParams }: PageProps<"/admin/
               </tr>
             ))}
             <tr className="font-semibold">
-              <td className="py-2" colSpan={2}>Total</td>
+              <td className="py-2" colSpan={2}>{tr("Total")}</td>
               <td className="text-right tabular-nums">{m(st.totals.opening, display)}</td>
               <td className="text-right tabular-nums">{m(st.totals.billed, display)}</td>
               <td className="text-right tabular-nums">{m(st.totals.paid, display)}</td>
@@ -68,23 +73,23 @@ export default async function StatementPage({ searchParams }: PageProps<"/admin/
           </tbody>
         </table>
 
-        <h2 className="mb-2 mt-8 text-base font-semibold">Transactions</h2>
+        <h2 className="mb-2 mt-8 text-base font-semibold">{tr("Transactions")}</h2>
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b text-left text-xs uppercase text-muted-foreground">
-              <th className="py-2">Date</th><th>Unit</th><th>Description</th><th className="text-right">Amount</th>
+              <th className="py-2">{tr("Date")}</th><th>{tr("Unit")}</th><th>{tr("Description")}</th><th className="text-right">{tr("Amount")}</th>
             </tr>
           </thead>
           <tbody>
             {st.lines.length === 0 && (
-              <tr><td colSpan={4} className="py-4 text-center text-muted-foreground">No transactions this month.</td></tr>
+              <tr><td colSpan={4} className="py-4 text-center text-muted-foreground">{tr("No transactions this month.")}</td></tr>
             )}
             {st.lines.map((l, i) => (
               <tr key={i} className="border-b">
-                <td className="py-1.5">{fmtDate(l.date)}</td>
+                <td className="py-1.5">{fmtDate(l.date, locale)}</td>
                 <td>{l.unit}</td>
                 <td>
-                  {l.kind === "PAYMENT" ? `Payment (${PAYMENT_METHOD_LABEL[l.type] ?? l.type})${l.reference ? ` · ${l.reference}` : ""}` : `${l.description} · ${CHARGE_TYPE_LABEL[l.type] ?? l.type}`}
+                  {l.kind === "PAYMENT" ? `${tr("Payment")} (${tr(PAYMENT_METHOD_LABEL[l.type] ?? l.type)})${l.reference ? ` · ${l.reference}` : ""}` : `${l.description} · ${tr(CHARGE_TYPE_LABEL[l.type] ?? l.type)}`}
                 </td>
                 <td className={`text-right tabular-nums ${l.kind === "PAYMENT" ? "text-success" : ""}`}>
                   {l.kind === "PAYMENT" ? `-${m(l.amount, display)}` : m(l.amount, display)}
@@ -94,7 +99,7 @@ export default async function StatementPage({ searchParams }: PageProps<"/admin/
           </tbody>
         </table>
         <p className="mt-6 text-xs text-muted-foreground">
-          Billed = charges due in the month · Paid = payments received in the month · Closing = opening + billed − paid.
+          {tr("Billed = charges due in the month · Paid = payments received in the month · Closing = opening + billed − paid.")}
         </p>
       </article>
     </div>

@@ -1,9 +1,11 @@
+import { getI18n } from "@/lib/i18n/server";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Pencil, Plus, Trash2, UserX } from "lucide-react";
 import { db } from "@/lib/db";
 import { getLeaseLedger } from "@/lib/billing";
 import { fmtDate, toDateInput, todayLocal } from "@/lib/dates";
+import { chargeLabel } from "@/lib/i18n/charge-label";
 import { CHARGE_TYPE_LABEL, DOC_TYPE_LABEL, PAYMENT_METHOD_LABEL } from "@/lib/labels";
 import { moneyFormatter } from "@/lib/money";
 import { getMoneyContext } from "@/lib/settings";
@@ -19,10 +21,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BackLink, EmptyState, FileLink, PageHeader, Stat, TableWrap, Td, Th } from "@/components/shared/page";
 import Link from "next/link";
 
-export const metadata: Metadata = { title: "Tenant" };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t("Tenant") };
+}
 export const dynamic = "force-dynamic";
 
 export default async function TenantDetail({ params }: PageProps<"/admin/tenants/[id]">) {
+  const { t: tr, locale } = await getI18n();
   const { id } = await params;
   const tenant = await db.user.findFirst({
     where: { id, role: "TENANT" },
@@ -45,7 +51,7 @@ export default async function TenantDetail({ params }: PageProps<"/admin/tenants
 
   return (
     <>
-      <BackLink href="/admin/tenants">Tenants &amp; Units</BackLink>
+      <BackLink href="/admin/tenants">{tr("Tenants & Units")}</BackLink>
       <PageHeader
         title={tenant.name}
         description={`Apt ${lease.unit.label} · ${tenant.email}${tenant.phone ? ` · ${tenant.phone}` : ""}`}
@@ -60,35 +66,35 @@ export default async function TenantDetail({ params }: PageProps<"/admin/tenants
               </FormDialog>
             </>
           ) : (
-            <Badge tone="gray">Lease ended {fmtDate(lease.endDate)}</Badge>
+            <Badge tone="gray">{tr("Lease ended {date}", { date: fmtDate(lease.endDate, locale) })}</Badge>
           )
         }
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Balance" value={m(ledger.balance, lease.currency)} tone={ledger.balance > 0 ? "bad" : "good"} sub={ledger.balance < 0 ? "Credit on account" : undefined} />
-        <Stat label="Overdue" value={m(ledger.overdue, lease.currency)} tone={ledger.overdue > 0 ? "bad" : "default"} />
-        <Stat label="Monthly rent" value={m(lease.monthlyRent, lease.currency)} sub={`Due day ${lease.dueDay} · ${lease.graceDays} grace days`} />
-        <Stat label="Deposit" value={m(lease.deposit, lease.currency)} sub={`Lease since ${fmtDate(lease.startDate)}`} />
+        <Stat label={tr("Balance")} value={m(ledger.balance, lease.currency)} tone={ledger.balance > 0 ? "bad" : "good"} sub={ledger.balance < 0 ? tr("Credit on account") : undefined} />
+        <Stat label={tr("Overdue")} value={m(ledger.overdue, lease.currency)} tone={ledger.overdue > 0 ? "bad" : "default"} />
+        <Stat label={tr("Monthly rent")} value={m(lease.monthlyRent, lease.currency)} sub={tr("Due day {day} · {days} grace days", { day: lease.dueDay, days: lease.graceDays })} />
+        <Stat label={tr("Deposit")} value={m(lease.deposit, lease.currency)} sub={tr("Lease since {date}", { date: fmtDate(lease.startDate, locale) })} />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <section>
-            <h2 className="mb-3 text-lg font-semibold">Ledger</h2>
+            <h2 className="mb-3 text-lg font-semibold">{tr("Ledger")}</h2>
             <TableWrap>
-              <thead><tr><Th>Due</Th><Th>Charge</Th><Th className="text-right">Amount</Th><Th className="text-right">Paid</Th><Th>Status</Th><Th><span className="sr-only">Actions</span></Th></tr></thead>
+              <thead><tr><Th>{tr("Due")}</Th><Th>{tr("Charge")}</Th><Th className="text-right">{tr("Amount")}</Th><Th className="text-right">{tr("Paid")}</Th><Th>{tr("Status")}</Th><Th><span className="sr-only">{tr("Actions")}</span></Th></tr></thead>
               <tbody>
                 {rows.map((r) => (
                   <tr key={r.id}>
-                    <Td className="whitespace-nowrap">{fmtDate(r.dueDate)}</Td>
-                    <Td>{r.description}<span className="block text-xs text-muted-foreground">{CHARGE_TYPE_LABEL[r.type]}</span></Td>
+                    <Td className="whitespace-nowrap">{fmtDate(r.dueDate, locale)}</Td>
+                    <Td>{chargeLabel(r, tr, locale)}<span className="block text-xs text-muted-foreground">{tr(CHARGE_TYPE_LABEL[r.type])}</span></Td>
                     <Td className="text-right tabular-nums">{m(r.amount, lease.currency)}</Td>
                     <Td className="text-right tabular-nums">{m(r.paid, lease.currency)}</Td>
                     <Td><PaymentStatusBadge status={r.status} /></Td>
                     <Td className="text-right">
                       {(r.type === "LATE_FEE" || r.type === "OTHER") && r.amount > 0 && (
-                        <ActionButton size="sm" variant="ghost" aria-label={r.type === "LATE_FEE" ? "Waive late fee" : "Delete charge"} confirm={r.type === "LATE_FEE" ? "Waive this late fee?" : "Delete this charge?"} action={deleteChargeAction.bind(null, r.id)}>
+                        <ActionButton size="sm" variant="ghost" aria-label={r.type === "LATE_FEE" ? tr("Waive late fee") : tr("Delete charge")} confirm={r.type === "LATE_FEE" ? tr("Waive this late fee?") : tr("Delete this charge?")} action={deleteChargeAction.bind(null, r.id)}>
                           <Trash2 />
                         </ActionButton>
                       )}
@@ -97,22 +103,22 @@ export default async function TenantDetail({ params }: PageProps<"/admin/tenants
                 ))}
               </tbody>
             </TableWrap>
-            <p className="mt-2 text-xs text-muted-foreground">Payments are applied to the oldest charge first. Late fees are added automatically after the grace period.</p>
+            <p className="mt-2 text-xs text-muted-foreground">{tr("Payments are applied to the oldest charge first. Late fees are added automatically after the grace period.")}</p>
           </section>
 
           <section>
-            <h2 className="mb-3 text-lg font-semibold">Payment history</h2>
-            {payments.length === 0 ? <EmptyState title="No payments yet" /> : (
+            <h2 className="mb-3 text-lg font-semibold">{tr("Payment history")}</h2>
+            {payments.length === 0 ? <EmptyState title={tr("No payments yet")} /> : (
               <TableWrap>
-                <thead><tr><Th>Date</Th><Th>Method</Th><Th className="text-right">Amount</Th><Th>Receipt</Th><Th><span className="sr-only">Actions</span></Th></tr></thead>
+                <thead><tr><Th>{tr("Date")}</Th><Th>{tr("Method")}</Th><Th className="text-right">{tr("Amount")}</Th><Th>{tr("Receipt")}</Th><Th><span className="sr-only">{tr("Actions")}</span></Th></tr></thead>
                 <tbody>
                   {payments.map((p) => (
                     <tr key={p.id}>
-                      <Td>{fmtDate(p.paidAt)}</Td>
-                      <Td>{PAYMENT_METHOD_LABEL[p.method]}{p.reference ? <span className="block text-xs text-muted-foreground">{p.reference}</span> : null}{p.note ? <span className="block text-xs text-muted-foreground">{p.note}</span> : null}</Td>
+                      <Td>{fmtDate(p.paidAt, locale)}</Td>
+                      <Td>{tr(PAYMENT_METHOD_LABEL[p.method])}{p.reference ? <span className="block text-xs text-muted-foreground">{p.reference}</span> : null}{p.note ? <span className="block text-xs text-muted-foreground">{p.note}</span> : null}</Td>
                       <Td className="text-right font-semibold tabular-nums">{m(p.amount, lease.currency)}</Td>
-                      <Td>{p.receipt ? <FileLink id={p.receipt.id} name={p.receipt.filename} mime={p.receipt.mime} label="View" /> : "-"}</Td>
-                      <Td className="text-right"><ActionButton size="sm" variant="ghost" aria-label="Delete payment" confirm="Delete this payment?" action={deletePaymentAction.bind(null, p.id)}><Trash2 /></ActionButton></Td>
+                      <Td>{p.receipt ? <FileLink id={p.receipt.id} name={p.receipt.filename} mime={p.receipt.mime} label={tr("View")} /> : "-"}</Td>
+                      <Td className="text-right"><ActionButton size="sm" variant="ghost" aria-label={tr("Delete payment")} confirm={tr("Delete this payment?")} action={deletePaymentAction.bind(null, p.id)}><Trash2 /></ActionButton></Td>
                     </tr>
                   ))}
                 </tbody>
@@ -123,18 +129,18 @@ export default async function TenantDetail({ params }: PageProps<"/admin/tenants
 
         <aside className="space-y-4">
           <Card>
-            <CardHeader><CardTitle>Lease</CardTitle></CardHeader>
+            <CardHeader><CardTitle>{tr("Lease")}</CardTitle></CardHeader>
             <CardContent className="space-y-3 text-sm">
               <dl className="grid grid-cols-2 gap-y-1.5">
-                <dt className="text-muted-foreground">Unit</dt><dd className="text-right font-medium">Apt {lease.unit.label}</dd>
-                <dt className="text-muted-foreground">Start</dt><dd className="text-right font-medium">{fmtDate(lease.startDate)}</dd>
-                <dt className="text-muted-foreground">End</dt><dd className="text-right font-medium">{lease.endDate ? fmtDate(lease.endDate) : "Open-ended"}</dd>
-                <dt className="text-muted-foreground">Late fee</dt>
-                <dd className="text-right font-medium">{lease.lateFeeFlat > 0 ? m(lease.lateFeeFlat, lease.currency) : ""}{lease.lateFeeFlat > 0 && lease.lateFeePercent > 0 ? " + " : ""}{lease.lateFeePercent > 0 ? `${lease.lateFeePercent}%` : lease.lateFeeFlat > 0 ? "" : "None"}</dd>
+                <dt className="text-muted-foreground">{tr("Unit")}</dt><dd className="text-right font-medium">{tr("Apt {unit}", { unit: lease.unit.label })}</dd>
+                <dt className="text-muted-foreground">{tr("Start")}</dt><dd className="text-right font-medium">{fmtDate(lease.startDate, locale)}</dd>
+                <dt className="text-muted-foreground">{tr("End")}</dt><dd className="text-right font-medium">{lease.endDate ? fmtDate(lease.endDate, locale) : tr("Open-ended")}</dd>
+                <dt className="text-muted-foreground">{tr("Late fee")}</dt>
+                <dd className="text-right font-medium">{lease.lateFeeFlat > 0 ? m(lease.lateFeeFlat, lease.currency) : ""}{lease.lateFeeFlat > 0 && lease.lateFeePercent > 0 ? " + " : ""}{lease.lateFeePercent > 0 ? `${lease.lateFeePercent}%` : lease.lateFeeFlat > 0 ? "" : tr("None")}</dd>
               </dl>
               {lease.active && (
                 <>
-                  <FormDialog trigger={<Button variant="outline" className="w-full"><Pencil /> Edit lease terms</Button>} title="Edit lease">
+                  <FormDialog trigger={<Button variant="outline" className="w-full"><Pencil /> {tr("Edit lease terms")}</Button>} title="Edit lease">
                     <LeaseForm lease={{
                       id: lease.id, startDate: toDateInput(lease.startDate), endDate: lease.endDate ? toDateInput(lease.endDate) : "",
                       monthlyRent: (lease.monthlyRent / 100).toFixed(2), currency: lease.currency, dueDay: String(lease.dueDay),
@@ -143,8 +149,8 @@ export default async function TenantDetail({ params }: PageProps<"/admin/tenants
                     }} />
                   </FormDialog>
                   <ResetLinkButton userId={tenant.id} />
-                  <ActionButton variant="destructive" className="w-full" confirm={`End the lease for ${tenant.name}? They will no longer be able to sign in.`} action={endLease.bind(null, lease.id)}>
-                    <UserX /> End lease &amp; revoke access
+                  <ActionButton variant="destructive" className="w-full" confirm={tr("End the lease for {name}? They will no longer be able to sign in.", { name: tenant.name })} action={endLease.bind(null, lease.id)}>
+                    <UserX /> {tr("End lease & revoke access")}
                   </ActionButton>
                 </>
               )}
@@ -152,22 +158,22 @@ export default async function TenantDetail({ params }: PageProps<"/admin/tenants
           </Card>
 
           <Card>
-            <CardHeader><CardTitle>Documents</CardTitle></CardHeader>
+            <CardHeader><CardTitle>{tr("Documents")}</CardTitle></CardHeader>
             <CardContent className="space-y-2 text-sm">
-              {docs.length === 0 && <p className="text-muted-foreground">No documents. Upload from the Document Vault.</p>}
+              {docs.length === 0 && <p className="text-muted-foreground">{tr("No documents. Upload from the Document Vault.")}</p>}
               {docs.map((d) => (
                 <div key={d.id} className="flex items-center justify-between gap-2">
                   <FileLink id={d.file.id} name={d.file.filename} mime={d.file.mime} label={d.title} />
-                  <Badge>{DOC_TYPE_LABEL[d.type]}</Badge>
+                  <Badge>{tr(DOC_TYPE_LABEL[d.type])}</Badge>
                 </div>
               ))}
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader><CardTitle>Recent requests</CardTitle></CardHeader>
+            <CardHeader><CardTitle>{tr("Recent requests")}</CardTitle></CardHeader>
             <CardContent className="space-y-2 text-sm">
-              {tickets.length === 0 && <p className="text-muted-foreground">None.</p>}
+              {tickets.length === 0 && <p className="text-muted-foreground">{tr("None.")}</p>}
               {tickets.map((t) => (
                 <div key={t.id} className="flex items-center justify-between gap-2">
                   <Link href={`/admin/maintenance/${t.id}`} className="truncate font-medium hover:underline">{t.title}</Link>

@@ -13,8 +13,10 @@ import { FileField } from "@/components/forms/file-field";
 import { Field, FormError, Input, Select, Textarea } from "@/components/ui/form-controls";
 import { CONTACT_CATEGORY_LABEL, DOC_TYPE_LABEL } from "@/lib/labels";
 import { announcementSchema, contactSchema, documentSchema, settingsSchema } from "@/lib/validators";
+import { useT } from "@/lib/i18n/provider";
 
 export function AnnouncementForm() {
+  const { t } = useT();
   const { form, submit, pending, serverError, err } = useActionForm({
     schema: announcementSchema,
     defaultValues: { title: "", body: "", pinned: false, expiresAt: "" },
@@ -34,14 +36,15 @@ export function AnnouncementForm() {
       </Field>
       <label className="flex items-center gap-3 rounded-lg border bg-secondary/40 p-3 text-sm font-medium">
         <input type="checkbox" className="size-5 accent-[var(--primary)]" {...form.register("pinned")} />
-        Pin to every tenant&apos;s dashboard
+        {t("Pin to every tenant's dashboard")}
       </label>
-      <SubmitButton pending={pending} className="w-full">Post announcement</SubmitButton>
+      <SubmitButton pending={pending} className="w-full">{t("Post announcement")}</SubmitButton>
     </form>
   );
 }
 
 export function DocumentForm({ tenants }: { tenants: { id: string; name: string; unit: string }[] }) {
+  const { t } = useT();
   const [type, setType] = useState("LEASE");
   const { form, submit, pending, serverError, err, setFiles, fileKey } = useActionForm({
     schema: documentSchema,
@@ -58,23 +61,24 @@ export function DocumentForm({ tenants }: { tenants: { id: string; name: string;
       <div className="grid grid-cols-2 gap-3">
         <Field label="Type" htmlFor="d-type" error={err("type")}>
           <Select id="d-type" {...typeReg} onChange={(e) => { setType(e.target.value); typeReg.onChange(e); }}>
-            {Object.entries(DOC_TYPE_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            {Object.entries(DOC_TYPE_LABEL).map(([v, l]) => <option key={v} value={v}>{t(l)}</option>)}
           </Select>
         </Field>
         <Field label="Visible to" htmlFor="d-tenant" error={err("tenantId")}>
           <Select id="d-tenant" {...form.register("tenantId")}>
-            {(type === "HOUSE_RULES" || type === "OTHER") && <option value="">All tenants</option>}
-            {tenants.map((t) => <option key={t.id} value={t.id}>{t.name} (Apt {t.unit})</option>)}
+            {(type === "HOUSE_RULES" || type === "OTHER") && <option value="">{t("All tenants")}</option>}
+            {tenants.map((tn) => <option key={tn.id} value={tn.id}>{tn.name} ({t("Apt {unit}", { unit: tn.unit })})</option>)}
           </Select>
         </Field>
       </div>
       <FileField key={fileKey} label="File" name="file" onFiles={setFiles} error={err("file" as never)} />
-      <SubmitButton pending={pending} className="w-full">Upload</SubmitButton>
+      <SubmitButton pending={pending} className="w-full">{t("Upload")}</SubmitButton>
     </form>
   );
 }
 
 export function ContactForm() {
+  const { t } = useT();
   const { form, submit, pending, serverError, err } = useActionForm({
     schema: contactSchema,
     defaultValues: { name: "", role: "", category: "PLUMBER" as const, phone: "", notes: "" },
@@ -87,19 +91,20 @@ export function ContactForm() {
       <div className="grid grid-cols-2 gap-3">
         <Field label="Category" htmlFor="c-cat" error={err("category")}>
           <Select id="c-cat" {...form.register("category")}>
-            {Object.entries(CONTACT_CATEGORY_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            {Object.entries(CONTACT_CATEGORY_LABEL).map(([v, l]) => <option key={v} value={v}>{t(l)}</option>)}
           </Select>
         </Field>
         <Field label="Phone" htmlFor="c-phone" error={err("phone")}><Input id="c-phone" type="tel" {...form.register("phone")} /></Field>
       </div>
       <Field label="Role / what they do (optional)" htmlFor="c-role" error={err("role")}><Input id="c-role" {...form.register("role")} /></Field>
       <Field label="Notes (optional)" htmlFor="c-notes" error={err("notes")}><Input id="c-notes" {...form.register("notes")} /></Field>
-      <SubmitButton pending={pending} className="w-full">Add contact</SubmitButton>
+      <SubmitButton pending={pending} className="w-full">{t("Add contact")}</SubmitButton>
     </form>
   );
 }
 
 export function SettingsForm({ defaults }: { defaults: { usdDopRate: string; propertyName: string; propertyAddress: string; ownerPhone: string } }) {
+  const { t } = useT();
   const [saved, setSaved] = useState(false);
   const { form, submit, pending, serverError, err } = useActionForm({
     schema: settingsSchema,
@@ -118,8 +123,8 @@ export function SettingsForm({ defaults }: { defaults: { usdDopRate: string; pro
         <Input id="s-rate" inputMode="decimal" {...form.register("usdDopRate")} />
       </Field>
       <div className="flex items-center gap-3">
-        <SubmitButton pending={pending}>Save settings</SubmitButton>
-        {saved && <span role="status" className="text-sm font-medium text-success">Saved ✓</span>}
+        <SubmitButton pending={pending}>{t("Save settings")}</SubmitButton>
+        {saved && <span role="status" className="text-sm font-medium text-success">{t("Saved ✓")}</span>}
       </div>
     </form>
   );

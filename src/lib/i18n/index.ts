@@ -1,4 +1,7 @@
-import es from "./es";
+import base from "./es";
+import admin from "./es-admin";
+
+const es: Record<string, string> = { ...base, ...admin };
 
 export type Locale = "en" | "es";
 export const LOCALE_COOKIE = "cdj-lang";

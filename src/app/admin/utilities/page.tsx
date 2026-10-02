@@ -1,3 +1,4 @@
+import { getI18n } from "@/lib/i18n/server";
 import type { Metadata } from "next";
 import { Plus, Trash2, Zap } from "lucide-react";
 import { db } from "@/lib/db";
@@ -11,10 +12,14 @@ import { FormDialog } from "@/components/forms/form-dialog";
 import { Button } from "@/components/ui/button";
 import { EmptyState, FileLink, PageHeader, TableWrap, Td, Th } from "@/components/shared/page";
 
-export const metadata: Metadata = { title: "Electricity" };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t("Electricity") };
+}
 export const dynamic = "force-dynamic";
 
 export default async function UtilitiesPage() {
+  const { t: tr, locale } = await getI18n();
   const { display, rate } = await getMoneyContext();
   const m = moneyFormatter(display, rate);
 
@@ -46,11 +51,11 @@ export default async function UtilitiesPage() {
   return (
     <>
       <PageHeader
-        title="Electricity"
-        description="Sub-meter readings per unit. Saving a reading bills the tenant automatically."
+        title={tr("Electricity")}
+        description={tr("Sub-meter readings per unit. Saving a reading bills the tenant automatically.")}
         actions={
           units.length > 0 && (
-            <FormDialog trigger={<Button><Plus /> New reading</Button>} title="Record meter reading" description="Previous reading and rate are pre-filled from the last bill.">
+            <FormDialog trigger={<Button><Plus /> {tr("New reading")}</Button>} title="Record meter reading" description="Previous reading and rate are pre-filled from the last bill.">
               <ReadingForm units={units} period={billingMonth} dueDate={dueDefault} />
             </FormDialog>
           )
@@ -58,29 +63,29 @@ export default async function UtilitiesPage() {
       />
 
       {readings.length === 0 ? (
-        <EmptyState title="No readings yet">Record the first sub-meter reading to start billing electricity.</EmptyState>
+        <EmptyState title={tr("No readings yet")}>{tr("Record the first sub-meter reading to start billing electricity.")}</EmptyState>
       ) : (
         <TableWrap>
           <thead>
             <tr>
-              <Th>Month</Th><Th>Unit</Th><Th className="text-right">Previous</Th><Th className="text-right">Current</Th>
-              <Th className="text-right">Usage</Th><Th className="text-right">Rate</Th><Th className="text-right">Bill</Th><Th>Due</Th><Th>Photo</Th><Th><span className="sr-only">Actions</span></Th>
+              <Th>{tr("Month")}</Th><Th>{tr("Unit")}</Th><Th className="text-right">{tr("Previous")}</Th><Th className="text-right">{tr("Current")}</Th>
+              <Th className="text-right">{tr("Usage")}</Th><Th className="text-right">{tr("Rate")}</Th><Th className="text-right">{tr("Bill")}</Th><Th>{tr("Due")}</Th><Th>{tr("Photo")}</Th><Th><span className="sr-only">{tr("Actions")}</span></Th>
             </tr>
           </thead>
           <tbody>
             {readings.map((r) => (
               <tr key={r.id}>
-                <Td className="whitespace-nowrap font-medium">{fmtPeriod(r.period)}</Td>
+                <Td className="whitespace-nowrap font-medium">{fmtPeriod(r.period, locale)}</Td>
                 <Td className="font-semibold">{r.unit.label}</Td>
                 <Td className="text-right tabular-nums">{r.previousKwh}</Td>
                 <Td className="text-right tabular-nums">{r.currentKwh}</Td>
                 <Td className="text-right tabular-nums"><span className="inline-flex items-center gap-1"><Zap className="size-3.5 text-gold" />{(r.currentKwh - r.previousKwh).toFixed(1)} kWh</span></Td>
                 <Td className="text-right tabular-nums">{r.ratePerKwh} {r.currency}</Td>
                 <Td className="text-right font-semibold tabular-nums">{m(r.subtotal, r.currency)}</Td>
-                <Td className="whitespace-nowrap">{fmtDate(r.dueDate)}</Td>
-                <Td>{r.photo ? <FileLink id={r.photo.id} name={r.photo.filename} mime={r.photo.mime} label="View" /> : <span className="text-muted-foreground">-</span>}</Td>
+                <Td className="whitespace-nowrap">{fmtDate(r.dueDate, locale)}</Td>
+                <Td>{r.photo ? <FileLink id={r.photo.id} name={r.photo.filename} mime={r.photo.mime} label={tr("View")} /> : <span className="text-muted-foreground">-</span>}</Td>
                 <Td className="text-right">
-                  <ActionButton size="sm" variant="ghost" aria-label="Delete reading" confirm="Delete this reading and remove its bill from the tenant balance?" action={deleteReadingAction.bind(null, r.id)}>
+                  <ActionButton size="sm" variant="ghost" aria-label={tr("Delete reading")} confirm={tr("Delete this reading and remove its bill from the tenant balance?")} action={deleteReadingAction.bind(null, r.id)}>
                     <Trash2 />
                   </ActionButton>
                 </Td>

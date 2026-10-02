@@ -19,6 +19,7 @@ import {
 import { SideNavLink } from "@/components/shared/nav-link";
 import { BrandMark } from "@/components/shared/brand";
 import { logoutAction } from "@/actions/auth";
+import { useT } from "@/lib/i18n/provider";
 
 const ITEMS = [
   { href: "/admin", label: "Dashboard", icon: <LayoutDashboard />, exact: true },
@@ -33,11 +34,12 @@ const ITEMS = [
 ];
 
 function NavList({ onNavigate }: { onNavigate?: () => void }) {
+  const { t } = useT();
   return (
-    <nav className="flex flex-col gap-1" aria-label="Main">
+    <nav className="flex flex-col gap-1" aria-label={t("Main")}>
       {ITEMS.map((i) => (
         <SideNavLink key={i.href} href={i.href} exact={i.exact} icon={i.icon} onNavigate={onNavigate}>
-          {i.label}
+          {t(i.label)}
         </SideNavLink>
       ))}
     </nav>
@@ -45,19 +47,21 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 function SignOut() {
+  const { t } = useT();
   return (
     <form action={logoutAction}>
       <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary">
-        <LogOut className="size-[18px]" /> Sign out
+        <LogOut className="size-[18px]" /> {t("Sign out")}
       </button>
     </form>
   );
 }
 
 export function AdminSidebar() {
+  const { t } = useT();
   return (
     <aside className="no-print sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-4 border-r bg-card p-4 lg:flex">
-      <BrandMark subtitle="Owner back-office" className="px-1 pb-2" />
+      <BrandMark subtitle={t("Owner back-office")} className="px-1 pb-2" />
       <div className="flex-1 overflow-y-auto">
         <NavList />
       </div>
@@ -67,23 +71,24 @@ export function AdminSidebar() {
 }
 
 export function AdminMobileMenu() {
+  const { t } = useT();
   const [open, setOpen] = useState(false);
   return (
     <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
       <DialogPrimitive.Trigger
         className="rounded-lg p-2 hover:bg-secondary lg:hidden"
-        aria-label="Open menu"
+        aria-label={t("Open menu")}
       >
         <Menu className="size-6" />
       </DialogPrimitive.Trigger>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-[#10242b]/50" />
         <DialogPrimitive.Content className="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col gap-4 bg-card p-4 shadow-xl outline-none">
-          <DialogPrimitive.Title className="sr-only">Menu</DialogPrimitive.Title>
-          <DialogPrimitive.Description className="sr-only">Site navigation</DialogPrimitive.Description>
+          <DialogPrimitive.Title className="sr-only">{t("Menu")}</DialogPrimitive.Title>
+          <DialogPrimitive.Description className="sr-only">{t("Site navigation")}</DialogPrimitive.Description>
           <div className="flex items-center justify-between">
-            <BrandMark subtitle="Owner back-office" />
-            <DialogPrimitive.Close className="rounded-md p-1.5 hover:bg-secondary" aria-label="Close menu">
+            <BrandMark subtitle={t("Owner back-office")} />
+            <DialogPrimitive.Close className="rounded-md p-1.5 hover:bg-secondary" aria-label={t("Close menu")}>
               <X className="size-5" />
             </DialogPrimitive.Close>
           </div>

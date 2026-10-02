@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
 import { Button, type ButtonProps } from "@/components/ui/button";
 import type { ActionResult } from "@/lib/validators";
+import { useT } from "@/lib/i18n/provider";
 
 /** One-click server action (delete, toggle...) with optional confirm and inline error. */
 export function ActionButton({
@@ -17,6 +18,7 @@ export function ActionButton({
   confirm?: string;
   onResult?: (r: ActionResult<unknown>) => void;
 }) {
+  const { t } = useT();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
   return (
@@ -40,7 +42,7 @@ export function ActionButton({
       </Button>
       {error && (
         <span role="alert" className="ml-2 text-xs font-medium text-destructive">
-          {error}
+          {t(error)}
         </span>
       )}
     </>

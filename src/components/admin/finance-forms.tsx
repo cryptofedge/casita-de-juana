@@ -9,6 +9,7 @@ import { Field, FormError, Input, Select, Textarea } from "@/components/ui/form-
 import { PAYMENT_METHOD_LABEL } from "@/lib/labels";
 import { chargeSchema, paymentSchema } from "@/lib/validators";
 import { toDateInput } from "@/lib/dates";
+import { useT } from "@/lib/i18n/provider";
 
 export interface LeaseOption {
   id: string;
@@ -18,6 +19,7 @@ export interface LeaseOption {
 }
 
 export function PaymentForm({ leases, defaultLeaseId, today }: { leases: LeaseOption[]; defaultLeaseId?: string; today: string }) {
+  const { t } = useT();
   const { form, submit, pending, serverError, err, setFiles, fileKey } = useActionForm({
     schema: paymentSchema,
     defaultValues: {
@@ -40,13 +42,13 @@ export function PaymentForm({ leases, defaultLeaseId, today }: { leases: LeaseOp
         <Select id="leaseId" {...form.register("leaseId")}>
           {leases.map((l) => (
             <option key={l.id} value={l.id}>
-              Apt {l.unit} - {l.tenant}
+              {t("Apt {unit}", { unit: l.unit })} - {l.tenant}
             </option>
           ))}
         </Select>
       </Field>
       <div className="grid grid-cols-2 gap-3">
-        <Field label={`Amount (${cur})`} htmlFor="amount" error={err("amount")} hint="In the lease currency">
+        <Field label={t("Amount ({cur})", { cur })} htmlFor="amount" error={err("amount")} hint="In the lease currency">
           <Input id="amount" inputMode="decimal" placeholder="0.00" {...form.register("amount")} />
         </Field>
         <Field label="Date received" htmlFor="paidAt" error={err("paidAt")}>
@@ -56,7 +58,7 @@ export function PaymentForm({ leases, defaultLeaseId, today }: { leases: LeaseOp
       <Field label="Method" htmlFor="method" error={err("method")}>
         <Select id="method" {...form.register("method")}>
           {Object.entries(PAYMENT_METHOD_LABEL).map(([v, l]) => (
-            <option key={v} value={v}>{l}</option>
+            <option key={v} value={v}>{t(l)}</option>
           ))}
         </Select>
       </Field>
@@ -67,12 +69,13 @@ export function PaymentForm({ leases, defaultLeaseId, today }: { leases: LeaseOp
         <Textarea id="note" rows={2} {...form.register("note")} />
       </Field>
       <FileField key={fileKey} label="Receipt photo or PDF (optional)" name="receipt" onFiles={setFiles} error={err("receipt" as never)} />
-      <SubmitButton pending={pending} className="w-full">Save payment</SubmitButton>
+      <SubmitButton pending={pending} className="w-full">{t("Save payment")}</SubmitButton>
     </form>
   );
 }
 
 export function ChargeForm({ leases, today }: { leases: LeaseOption[]; today: string }) {
+  const { t } = useT();
   const { form, submit, pending, serverError, err } = useActionForm({
     schema: chargeSchema,
     defaultValues: { leaseId: leases[0]?.id ?? "", description: "", amount: "", dueDate: today },
@@ -85,7 +88,7 @@ export function ChargeForm({ leases, today }: { leases: LeaseOption[]; today: st
       <Field label="Unit / tenant" htmlFor="c-leaseId" error={err("leaseId")}>
         <Select id="c-leaseId" {...form.register("leaseId")}>
           {leases.map((l) => (
-            <option key={l.id} value={l.id}>Apt {l.unit} - {l.tenant}</option>
+            <option key={l.id} value={l.id}>{t("Apt {unit}", { unit: l.unit })} - {l.tenant}</option>
           ))}
         </Select>
       </Field>
@@ -93,14 +96,14 @@ export function ChargeForm({ leases, today }: { leases: LeaseOption[]; today: st
         <Input id="description" placeholder="e.g. Broken window repair" {...form.register("description")} />
       </Field>
       <div className="grid grid-cols-2 gap-3">
-        <Field label={`Amount (${cur})`} htmlFor="c-amount" error={err("amount")}>
+        <Field label={t("Amount ({cur})", { cur })} htmlFor="c-amount" error={err("amount")}>
           <Input id="c-amount" inputMode="decimal" placeholder="0.00" {...form.register("amount")} />
         </Field>
         <Field label="Due date" htmlFor="dueDate" error={err("dueDate")}>
           <Input id="dueDate" type="date" {...form.register("dueDate")} />
         </Field>
       </div>
-      <SubmitButton pending={pending} className="w-full">Add charge</SubmitButton>
+      <SubmitButton pending={pending} className="w-full">{t("Add charge")}</SubmitButton>
     </form>
   );
 }

@@ -4,6 +4,7 @@ import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n/provider";
 
 export const Dialog = DialogPrimitive.Root;
 export const DialogTrigger = DialogPrimitive.Trigger;
@@ -17,6 +18,7 @@ export function DialogContent({
   description,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & { title: string; description?: string }) {
+  const { t } = useT();
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-[#10242b]/50 backdrop-blur-[2px]" />
@@ -30,12 +32,12 @@ export function DialogContent({
       >
         <div className="flex items-start justify-between gap-4 border-b px-5 py-4">
           <div>
-            <DialogPrimitive.Title className="font-display text-lg font-semibold">{title}</DialogPrimitive.Title>
+            <DialogPrimitive.Title className="font-display text-lg font-semibold">{t(title)}</DialogPrimitive.Title>
             <DialogPrimitive.Description className={cn("text-sm text-muted-foreground", !description && "sr-only")}>
-              {description ?? title}
+              {t(description ?? title)}
             </DialogPrimitive.Description>
           </div>
-          <DialogPrimitive.Close className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary" aria-label="Close">
+          <DialogPrimitive.Close className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary" aria-label={t("Close")}>
             <X className="size-5" />
           </DialogPrimitive.Close>
         </div>

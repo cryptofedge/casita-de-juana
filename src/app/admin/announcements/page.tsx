@@ -1,3 +1,4 @@
+import { getI18n } from "@/lib/i18n/server";
 import type { Metadata } from "next";
 import { Pin, PinOff, Plus, Trash2 } from "lucide-react";
 import { db } from "@/lib/db";
@@ -11,24 +12,28 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState, PageHeader } from "@/components/shared/page";
 
-export const metadata: Metadata = { title: "Notice Board" };
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getI18n();
+  return { title: t("Notice Board") };
+}
 export const dynamic = "force-dynamic";
 
 export default async function AnnouncementsPage() {
+  const { t: tr, locale } = await getI18n();
   const items = await db.announcement.findMany({ orderBy: [{ pinned: "desc" }, { createdAt: "desc" }] });
   return (
     <>
       <PageHeader
-        title="Notice Board"
-        description="Broadcasts for scheduled shut-offs, fumigation, quiet hours and more. Pinned notices stay at the top of every tenant's dashboard."
+        title={tr("Notice Board")}
+        description={tr("Broadcasts for scheduled shut-offs, fumigation, quiet hours and more. Pinned notices stay at the top of every tenant's dashboard.")}
         actions={
-          <FormDialog trigger={<Button><Plus /> New announcement</Button>} title="New announcement">
+          <FormDialog trigger={<Button><Plus /> {tr("New announcement")}</Button>} title="New announcement">
             <AnnouncementForm />
           </FormDialog>
         }
       />
       {items.length === 0 ? (
-        <EmptyState title="No announcements yet" />
+        <EmptyState title={tr("No announcements yet")} />
       ) : (
         <div className="space-y-3">
           {items.map((a) => (
@@ -37,17 +42,17 @@ export default async function AnnouncementsPage() {
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="font-display text-lg font-semibold">{a.title}</h3>
-                    {a.pinned && <Badge tone="clay">Pinned</Badge>}
-                    {a.expiresAt && a.expiresAt < new Date() && <Badge>Expired</Badge>}
+                    {a.pinned && <Badge tone="clay">{tr("Pinned")}</Badge>}
+                    {a.expiresAt && a.expiresAt < new Date() && <Badge>{tr("Expired")}</Badge>}
                   </div>
                   <p className="mt-1 whitespace-pre-wrap text-sm">{a.body}</p>
-                  <p className="mt-2 text-xs text-muted-foreground">Posted {fmtDate(a.createdAt)}{a.expiresAt ? ` · hides ${fmtDate(a.expiresAt)}` : ""}</p>
+                  <p className="mt-2 text-xs text-muted-foreground">{tr("Posted {date}", { date: fmtDate(a.createdAt, locale) })}{a.expiresAt ? ` · ${tr("hides {date}", { date: fmtDate(a.expiresAt, locale) })}` : ""}</p>
                 </div>
                 <div className="flex shrink-0 gap-1">
-                  <ActionButton size="sm" variant="ghost" aria-label={a.pinned ? "Unpin" : "Pin"} action={toggleAnnouncementPinAction.bind(null, a.id)}>
+                  <ActionButton size="sm" variant="ghost" aria-label={a.pinned ? tr("Unpin") : tr("Pin")} action={toggleAnnouncementPinAction.bind(null, a.id)}>
                     {a.pinned ? <PinOff /> : <Pin />}
                   </ActionButton>
-                  <ActionButton size="sm" variant="ghost" aria-label="Delete" confirm="Delete this announcement?" action={deleteAnnouncementAction.bind(null, a.id)}>
+                  <ActionButton size="sm" variant="ghost" aria-label={tr("Delete")} confirm={tr("Delete this announcement?")} action={deleteAnnouncementAction.bind(null, a.id)}>
                     <Trash2 />
                   </ActionButton>
                 </div>

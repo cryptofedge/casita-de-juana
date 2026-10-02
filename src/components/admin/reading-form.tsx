@@ -7,6 +7,7 @@ import { SubmitButton } from "@/components/forms/submit-button";
 import { FileField } from "@/components/forms/file-field";
 import { Field, FormError, Input, Select } from "@/components/ui/form-controls";
 import { meterReadingSchema } from "@/lib/validators";
+import { useT } from "@/lib/i18n/provider";
 
 export interface ReadingUnit {
   unitId: string;
@@ -18,6 +19,7 @@ export interface ReadingUnit {
 }
 
 export function ReadingForm({ units, period, dueDate }: { units: ReadingUnit[]; period: string; dueDate: string }) {
+  const { t } = useT();
   const first = units[0];
   const { form, submit, pending, serverError, err, setFiles, fileKey } = useActionForm({
     schema: meterReadingSchema,
@@ -49,7 +51,7 @@ export function ReadingForm({ units, period, dueDate }: { units: ReadingUnit[]; 
       <FormError message={serverError} />
       <Field label="Unit" htmlFor="r-unit" error={err("unitId")}>
         <Select id="r-unit" {...form.register("unitId")}>
-          {units.map((u) => <option key={u.unitId} value={u.unitId}>Apt {u.label} - {u.tenant} ({u.currency})</option>)}
+          {units.map((u) => <option key={u.unitId} value={u.unitId}>{t("Apt {unit}", { unit: u.label })} - {u.tenant} ({u.currency})</option>)}
         </Select>
       </Field>
       <div className="grid grid-cols-2 gap-3">
@@ -68,21 +70,21 @@ export function ReadingForm({ units, period, dueDate }: { units: ReadingUnit[]; 
           <Input id="r-curr" inputMode="decimal" {...form.register("currentKwh")} />
         </Field>
       </div>
-      <Field label={`Rate per kWh (${unit?.currency ?? "USD"})`} htmlFor="r-rate" error={err("ratePerKwh")}>
+      <Field label={t("Rate per kWh ({cur})", { cur: unit?.currency ?? "USD" })} htmlFor="r-rate" error={err("ratePerKwh")}>
         <Input id="r-rate" inputMode="decimal" {...form.register("ratePerKwh")} />
       </Field>
       <div className="rounded-lg bg-info-soft px-3 py-2 text-sm">
         {Number.isFinite(kwh) && Number.isFinite(subtotal) ? (
           <>
             <strong>{kwh.toFixed(2)} kWh</strong> × {rate} = <strong>{subtotal.toFixed(2)} {unit?.currency}</strong>
-            <span className="block text-xs text-muted-foreground">Added to the tenant balance when you save.</span>
+            <span className="block text-xs text-muted-foreground">{t("Added to the tenant balance when you save.")}</span>
           </>
         ) : (
-          <span className="text-muted-foreground">Enter the current reading to see the bill.</span>
+          <span className="text-muted-foreground">{t("Enter the current reading to see the bill.")}</span>
         )}
       </div>
       <FileField key={fileKey} label="Photo of the meter" name="photo" onFiles={setFiles} accept="image/*" capture hint="Proof of reading - visible to the tenant" error={err("photo" as never)} />
-      <SubmitButton pending={pending} className="w-full">Save reading &amp; bill tenant</SubmitButton>
+      <SubmitButton pending={pending} className="w-full">{t("Save reading & bill tenant")}</SubmitButton>
     </form>
   );
 }

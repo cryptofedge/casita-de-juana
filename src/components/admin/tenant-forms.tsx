@@ -9,22 +9,24 @@ import { ActionButton } from "@/components/forms/action-button";
 import { Button } from "@/components/ui/button";
 import { Field, FormError, Input, Select, Textarea } from "@/components/ui/form-controls";
 import { inviteTenantSchema, leaseUpdateSchema, unitSchema } from "@/lib/validators";
+import { useT } from "@/lib/i18n/provider";
 
 export function CopyLink({ link, label = "Invitation link" }: { link: string; label?: string }) {
+  const { t } = useT();
   const [copied, setCopied] = useState(false);
   return (
     <div className="space-y-2 rounded-lg border bg-info-soft p-3">
-      <div className="text-sm font-semibold">{label}</div>
+      <div className="text-sm font-semibold">{t(label)}</div>
       <p className="text-xs text-muted-foreground">
-        Send this link to the tenant (WhatsApp, SMS or email). It expires in 7 days and can be used once.
+        {t("Send this link to the tenant (WhatsApp, SMS or email). It expires in 7 days and can be used once.")}
       </p>
       <div className="flex gap-2">
-        <Input readOnly value={link} onFocus={(e) => e.currentTarget.select()} aria-label={label} />
+        <Input readOnly value={link} onFocus={(e) => e.currentTarget.select()} aria-label={t(label)} />
         <Button
           type="button"
           variant="outline"
           size="icon"
-          aria-label="Copy link"
+          aria-label={t("Copy link")}
           onClick={async () => {
             try {
               await navigator.clipboard.writeText(link);
@@ -43,6 +45,7 @@ export function CopyLink({ link, label = "Invitation link" }: { link: string; la
 }
 
 export function UnitForm() {
+  const { t } = useT();
   const { form, submit, pending, serverError, err } = useActionForm({
     schema: unitSchema,
     defaultValues: { label: "", floor: "1", bedrooms: "1", notes: "" },
@@ -65,12 +68,13 @@ export function UnitForm() {
       <Field label="Notes (optional)" htmlFor="notes" error={err("notes")}>
         <Textarea id="notes" rows={2} {...form.register("notes")} />
       </Field>
-      <SubmitButton pending={pending} className="w-full">Add unit</SubmitButton>
+      <SubmitButton pending={pending} className="w-full">{t("Add unit")}</SubmitButton>
     </form>
   );
 }
 
 export function InviteTenantForm({ units, today }: { units: { id: string; label: string }[]; today: string }) {
+  const { t } = useT();
   const [result, setResult] = useState<{ link: string; name: string } | null>(null);
   const { form, submit, pending, serverError, err } = useActionForm({
     schema: inviteTenantSchema,
@@ -87,7 +91,7 @@ export function InviteTenantForm({ units, today }: { units: { id: string; label:
     return (
       <div className="space-y-4">
         <p className="text-sm">
-          <strong>{result.name}</strong> was added and assigned to the unit. Share their personal link so they can choose a password.
+          {t("{name} was added and assigned to the unit. Share their personal link so they can choose a password.", { name: result.name })}
         </p>
         <CopyLink link={result.link} />
       </div>
@@ -110,7 +114,7 @@ export function InviteTenantForm({ units, today }: { units: { id: string; label:
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Assign to unit" htmlFor="unitId" error={err("unitId")}>
           <Select id="unitId" {...form.register("unitId")}>
-            {units.map((u) => <option key={u.id} value={u.id}>Apt {u.label}</option>)}
+            {units.map((u) => <option key={u.id} value={u.id}>{t("Apt {unit}", { unit: u.label })}</option>)}
           </Select>
         </Field>
         <Field label="Lease start" htmlFor="startDate" error={err("startDate")}>
@@ -137,7 +141,7 @@ export function InviteTenantForm({ units, today }: { units: { id: string; label:
       <Field label="Security deposit" htmlFor="deposit" error={err("deposit")}>
         <Input id="deposit" inputMode="decimal" {...form.register("deposit")} />
       </Field>
-      <SubmitButton pending={pending} className="w-full">Add tenant &amp; create invite link</SubmitButton>
+      <SubmitButton pending={pending} className="w-full">{t("Add tenant & create invite link")}</SubmitButton>
     </form>
   );
 }
@@ -150,6 +154,7 @@ export function LeaseForm({
     dueDay: string; graceDays: string; lateFeeFlat: string; lateFeePercent: string; deposit: string;
   };
 }) {
+  const { t } = useT();
   const { form, submit, pending, serverError, err } = useActionForm({
     schema: leaseUpdateSchema,
     defaultValues: { leaseId: lease.id, ...lease },
@@ -177,13 +182,14 @@ export function LeaseForm({
         <Field label="Late fee %" htmlFor="l-pct" error={err("lateFeePercent")}><Input id="l-pct" inputMode="decimal" {...form.register("lateFeePercent")} /></Field>
       </div>
       <Field label="Security deposit" htmlFor="l-dep" error={err("deposit")}><Input id="l-dep" inputMode="decimal" {...form.register("deposit")} /></Field>
-      <p className="text-xs text-muted-foreground">Changing the rent affects future months only; charges already created are not rewritten.</p>
-      <SubmitButton pending={pending} className="w-full">Save lease</SubmitButton>
+      <p className="text-xs text-muted-foreground">{t("Changing the rent affects future months only; charges already created are not rewritten.")}</p>
+      <SubmitButton pending={pending} className="w-full">{t("Save lease")}</SubmitButton>
     </form>
   );
 }
 
 export function ResetLinkButton({ userId }: { userId: string }) {
+  const { t } = useT();
   const [link, setLink] = useState<string | null>(null);
   return (
     <div className="space-y-3">
@@ -192,7 +198,7 @@ export function ResetLinkButton({ userId }: { userId: string }) {
         action={regenerateInviteAction.bind(null, userId)}
         onResult={(r) => r.ok && setLink((r.data as { link: string }).link)}
       >
-        New sign-in / password reset link
+        {t("New sign-in / password reset link")}
       </ActionButton>
       {link && <CopyLink link={link} label="New link" />}
     </div>
