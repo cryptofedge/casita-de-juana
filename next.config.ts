@@ -4,8 +4,8 @@ import path from "node:path";
 const nextConfig: NextConfig = {
   turbopack: { root: path.resolve(__dirname) },
   experimental: {
-    // Receipts / meter / damage photos are posted through server actions (up to 5 x 10 MB).
-    serverActions: { bodySizeLimit: "55mb" },
+    // Receipts / meter / damage photos are posted through server actions (shrunk in the browser first).
+    serverActions: { bodySizeLimit: "6mb" },
   },
   async headers() {
     return [

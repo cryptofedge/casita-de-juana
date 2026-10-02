@@ -110,7 +110,7 @@ remembered in a cookie; first visit follows the browser (`Accept-Language`). The
   values. Another tenant's ticket URL → 404.
 - **Files** are never public. They live in `UPLOAD_DIR` and are served only through `/api/files/[id]`, which checks
   that the signed-in user may see that exact file (`Cache-Control: no-store`). Uploads are limited to JPG/PNG/WebP/HEIC/PDF,
-  10 MB, with **magic-byte sniffing** (a renamed `.exe`/HTML is rejected).
+  4 MB, with **magic-byte sniffing** (a renamed `.exe`/HTML is rejected).
 - Passwords: bcrypt (cost 12), ≥ 8 chars; login has a per-email brute-force limiter (in-memory — add a shared limiter if
   you run several instances). Invite links are random 192-bit tokens, single-use, expire in 7 days.
 - CSV export neutralises spreadsheet formula injection.
@@ -133,15 +133,37 @@ src/
 public/brand/          logo + app icons
 ```
 
-## Going to production
+## Deploy for free (Vercel + Neon)
 
-1. Provision managed Postgres (Neon, Supabase, RDS…) and set `DATABASE_URL`; run `npm run db:migrate` (dev) /
-   `npx prisma migrate deploy` (CI).
-2. Set a strong `AUTH_SECRET`, `APP_URL` (used in invite links), `CRON_SECRET`; serve over HTTPS.
-3. **File storage**: local disk works on a VPS/Docker volume. On serverless hosts (Vercel) replace `lib/storage.ts`
-   (`saveUpload` / `readUpload`) with S3 / Cloudflare R2 / Supabase Storage — the authorization route stays the same.
-4. Schedule the daily billing call (see above).
-5. Remove the demo users.
+The repo is ready for Vercel: `vercel.json` runs `scripts/vercel-build.mjs`, which creates/updates the tables,
+creates your owner login, and builds. Uploads are stored in the database, so no disk or S3 is needed.
+
+1. **Neon database** (free): at https://neon.tech sign up with GitHub and create a project (region closest to you).
+2. **Vercel** (free Hobby plan): at https://vercel.com sign up with GitHub → *Add New… → Project* → import `casita-de-juana`.
+3. In the import screen add **Environment Variables**:
+   | Name | Value |
+   |---|---|
+   | `DATABASE_URL` | Neon connection string (the *pooled* one) |
+   | `DATABASE_URL_UNPOOLED` | Neon *direct* (non-pooled) connection string |
+   | `AUTH_SECRET` | any long random string (`npx auth secret`) |
+   | `CRON_SECRET` | another long random string |
+   | `BOOTSTRAP_OWNER_EMAIL` | your email |
+   | `BOOTSTRAP_OWNER_PASSWORD` | a strong password (10+ chars) |
+   | `BOOTSTRAP_OWNER_NAME` | your name |
+   (Tip: *Storage → Create → Neon* inside Vercel sets the two `DATABASE_URL*` variables for you.)
+4. **Deploy.** Open the `*.vercel.app` link and sign in with the owner email/password. Then delete
+   `BOOTSTRAP_OWNER_PASSWORD` from the Vercel settings.
+5. Optional: add a custom domain in Vercel → Settings → Domains (invite links and WhatsApp previews use the production domain
+   automatically; set `APP_URL` only if you use a custom domain that Vercel doesn't list as production).
+
+The daily billing job (rent + late fees) is scheduled in `vercel.json` and authenticates with `CRON_SECRET`.
+Free-tier notes: Neon's free database is 0.5 GB (plenty for 3 units; photos are shrunk to ~300 KB on the phone) and
+sleeps when idle, so the first request after a quiet period can take a second or two longer.
+Demo data is **not** loaded on deploy; tenants are added from the Tenants page.
+
+## Other hosting
+Any Node host + Postgres works (`npm run build && npm start`); run `npx prisma db push` once and create the owner with
+`BOOTSTRAP_OWNER_*` + `node scripts/bootstrap-owner.mjs`. Use `npx prisma migrate` instead of `db push` if you prefer versioned migrations.
 
 ## Known limitations / ideas for next steps
 

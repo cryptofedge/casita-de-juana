@@ -262,7 +262,8 @@ model Contact {
 
 model FileAsset {
   id         String   @id @default(cuid())
-  path       String   // relative to UPLOAD_DIR
+  path       String?  // legacy: file on disk, relative to UPLOAD_DIR
+  data       Bytes?   // file content (stored in the database so it works on serverless hosts)
   filename   String
   mime       String
   size       Int

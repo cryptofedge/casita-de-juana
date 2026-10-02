@@ -7,16 +7,12 @@
  * WARNING: this wipes every table first. It is meant for development/demo.
  */
 import "dotenv/config";
-import fs from "node:fs";
-import path from "node:path";
-import { randomUUID } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { PrismaClient, type Currency, type PaymentMethod } from "@prisma/client";
 import { addDays, addMonths, currentPeriod, dueDateFor, fmtPeriod, periodStart, todayLocal } from "../src/lib/dates";
 import { runBilling } from "../src/lib/billing";
 
 const db = new PrismaClient();
-const UPLOAD_DIR = path.resolve(process.env.UPLOAD_DIR || "./uploads");
 
 /** Smallest valid single-page PDF containing a line of text (placeholder documents). */
 function tinyPdf(text: string) {
@@ -43,13 +39,9 @@ function tinyPdf(text: string) {
 }
 
 async function pdfAsset(title: string, filename: string, ownerId: string) {
-  const rel = `seed/${randomUUID()}.pdf`;
-  const abs = path.join(UPLOAD_DIR, rel);
-  fs.mkdirSync(path.dirname(abs), { recursive: true });
   const buf = tinyPdf(`${title} - sample document`);
-  fs.writeFileSync(abs, buf);
   return db.fileAsset.create({
-    data: { path: rel, filename, mime: "application/pdf", size: buf.length, uploadedBy: ownerId },
+    data: { data: new Uint8Array(buf), filename, mime: "application/pdf", size: buf.length, uploadedBy: ownerId },
   });
 }
 

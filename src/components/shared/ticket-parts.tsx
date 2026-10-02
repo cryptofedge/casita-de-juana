@@ -62,7 +62,7 @@ export function NewTicketForm() {
       <Field label="Details" htmlFor="description" error={err("description")}>
         <Textarea id="description" rows={5} placeholder="Describe the problem, where it is, and when it started." {...form.register("description")} />
       </Field>
-      <FileField key={fileKey} label="Photos of the damage (optional)" name="photos" multiple onFiles={setFiles} accept="image/*" capture hint="Up to 5 photos · max 10 MB each" error={err("photos" as never)} />
+      <FileField key={fileKey} label="Photos of the damage (optional)" name="photos" multiple onFiles={setFiles} accept="image/*" capture hint="Up to 5 photos" error={err("photos" as never)} />
       <SubmitButton pending={pending} size="lg" className="w-full">{t("Send request")}</SubmitButton>
     </form>
   );

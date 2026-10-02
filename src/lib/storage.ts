@@ -1,10 +1,9 @@
-import { randomUUID } from "node:crypto";
-import fs from "node:fs/promises";
-import path from "node:path";
 import { db } from "./db";
 
-export const UPLOAD_DIR = path.resolve(/* turbopackIgnore: true */ process.env.UPLOAD_DIR || "./uploads");
-const MAX_BYTES = (Number(process.env.MAX_UPLOAD_MB) || 10) * 1024 * 1024;
+// Files are stored in PostgreSQL (FileAsset.data) so the app runs on serverless hosts
+// like Vercel that have no persistent disk. Photos are shrunk in the browser before upload.
+// Vercel limits a request body to ~4.5 MB, hence the 4 MB default cap.
+const MAX_BYTES = (Number(process.env.MAX_UPLOAD_MB) || 4) * 1024 * 1024;
 
 const ALLOWED: Record<string, string> = {
   "image/jpeg": ".jpg",
@@ -35,7 +34,7 @@ function sniffOk(mime: string, buf: Buffer): boolean {
   }
 }
 
-/** Saves an uploaded File to disk and records it. Returns null if no file was provided. */
+/** Saves an uploaded File and records it. Returns null if no file was provided. */
 export async function saveUpload(file: File | null | undefined, uploadedBy: string) {
   if (!file || file.size === 0) return null;
   if (file.size > MAX_BYTES) {
@@ -48,16 +47,9 @@ export async function saveUpload(file: File | null | undefined, uploadedBy: stri
   const buf = Buffer.from(await file.arrayBuffer());
   if (!sniffOk(mime, buf)) throw new UploadError("File content does not match its type.");
 
-  const now = new Date();
-  const folder = `${now.getUTCFullYear()}/${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
-  const rel = `${folder}/${randomUUID()}${ext}`;
-  const abs = path.join(UPLOAD_DIR, rel);
-  await fs.mkdir(path.dirname(abs), { recursive: true });
-  await fs.writeFile(abs, buf);
-
   return db.fileAsset.create({
     data: {
-      path: rel,
+      data: new Uint8Array(buf),
       filename: file.name.replace(/[^\w.\- ]+/g, "_").slice(0, 120) || `upload${ext}`,
       mime,
       size: file.size,
@@ -66,11 +58,9 @@ export async function saveUpload(file: File | null | undefined, uploadedBy: stri
   });
 }
 
-export async function readUpload(relPath: string) {
-  const abs = path.resolve(UPLOAD_DIR, relPath);
-  // Defense in depth against path traversal.
-  if (!abs.startsWith(UPLOAD_DIR + path.sep)) throw new Error("Invalid path");
-  return fs.readFile(/* turbopackIgnore: true */ abs);
+/** Loads a stored file's bytes (the only place that opts in to reading `data`). */
+export async function readFileAsset(id: string) {
+  return db.fileAsset.findUnique({ where: { id }, omit: { data: false } });
 }
 
 export function formatBytes(n: number) {

@@ -108,7 +108,7 @@ const es: Record<string, string> = {
   "Details": "Detalles",
   "Describe the problem, where it is, and when it started.": "Describa el problema, dónde está y cuándo empezó.",
   "Photos of the damage (optional)": "Fotos del daño (opcional)",
-  "Up to 5 photos · max 10 MB each": "Hasta 5 fotos · máx. 10 MB cada una",
+  "Up to 5 photos": "Hasta 5 fotos",
   "Send request": "Enviar solicitud",
   "Reply": "Respuesta",
   "Write a message…": "Escriba un mensaje…",
@@ -166,11 +166,11 @@ const es: Record<string, string> = {
   // Form helpers / uploads
   "Choose a file…": "Elegir un archivo…",
   "Choose files…": "Elegir archivos…",
-  "JPG, PNG, WebP, HEIC or PDF · max 10 MB": "JPG, PNG, WebP, HEIC o PDF · máx. 10 MB",
+  "JPG, PNG, WebP, HEIC or PDF · max 4 MB": "JPG, PNG, WebP, HEIC o PDF · máx. 4 MB",
   "Please fix the highlighted fields.": "Corrija los campos marcados.",
   "Only JPG, PNG, WebP, HEIC images and PDFs are allowed.": "Solo se permiten imágenes JPG, PNG, WebP, HEIC y PDF.",
   "File content does not match its type.": "El contenido del archivo no coincide con su tipo.",
-  "File is too large (max 10 MB).": "El archivo es demasiado grande (máx. 10 MB).",
+  "File is too large (max 4 MB).": "El archivo es demasiado grande (máx. 4 MB).",
   "Display currency": "Moneda mostrada",
 };
 

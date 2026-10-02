@@ -3,6 +3,7 @@
 import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
+import { appUrl } from "@/lib/app-url";
 import { runBilling } from "@/lib/billing";
 import { parseDateInput, todayLocal } from "@/lib/dates";
 import { parseForm } from "@/lib/form-server";
@@ -19,8 +20,7 @@ import {
 const INVITE_DAYS = 7;
 
 function inviteLink(token: string) {
-  const base = (process.env.APP_URL || "http://localhost:3000").replace(/\/$/, "");
-  return `${base}/invite/${token}`;
+  return `${appUrl()}/invite/${token}`;
 }
 
 function newInvite() {

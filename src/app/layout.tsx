@@ -1,13 +1,14 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
+import { appUrl } from "@/lib/app-url";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 const fraunces = Fraunces({ variable: "--font-fraunces", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   // Absolute base so share previews (WhatsApp, iMessage, Facebook) get full image URLs.
-  metadataBase: new URL(process.env.APP_URL || "http://localhost:3000"),
+  metadataBase: new URL(appUrl()),
   openGraph: {
     type: "website",
     siteName: "Casita de Juana",

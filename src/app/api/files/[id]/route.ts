@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getSessionUser } from "@/lib/session";
-import { readUpload } from "@/lib/storage";
+import { readFileAsset } from "@/lib/storage";
 
 export const dynamic = "force-dynamic";
 
@@ -44,12 +44,9 @@ export async function GET(req: Request, ctx: RouteContext<"/api/files/[id]">) {
     if (!allowed) return new NextResponse("Not found", { status: 404 });
   }
 
-  let data: Buffer;
-  try {
-    data = await readUpload(file.path);
-  } catch {
-    return new NextResponse("File missing", { status: 404 });
-  }
+  const full = await readFileAsset(id);
+  if (!full?.data) return new NextResponse("File missing", { status: 404 });
+  const data = full.data;
 
   const download = new URL(req.url).searchParams.get("download") === "1";
   const safeName = encodeURIComponent(file.filename);
