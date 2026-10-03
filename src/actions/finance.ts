@@ -8,8 +8,9 @@ import { getFile, parseForm } from "@/lib/form-server";
 import { toMinor } from "@/lib/money";
 import { assertOwner } from "@/lib/session";
 import { saveUpload, UploadError } from "@/lib/storage";
-import { adjKeys, adjustmentBase, planAdjustment } from "@/lib/adjust";
+import { adjKeys, solveAdjustment } from "@/lib/adjust";
 import { addDays, periodOf, todayLocal } from "@/lib/dates";
+import { ADJ_PREFIX } from "@/lib/adjust";
 import { adjustBalanceSchema, chargeSchema, fail, paymentSchema, type ActionResult } from "@/lib/validators";
 
 function refresh() {
@@ -113,34 +114,30 @@ export async function adjustBalanceAction(fd: FormData): Promise<ActionResult> {
   const targetBalance = toMinor(p.data.balance);
   const targetOverdue = toMinor(p.data.overdue);
   const today = todayLocal();
-  const base = adjustmentBase(lease.charges, lease.payments, lease.graceDays, today);
-  const plan = planAdjustment(base, targetBalance, targetOverdue);
-  if ("error" in plan) {
-    const messages: Record<string, string> = {
-      OVERDUE_GT_BALANCE: "Overdue cannot be more than the total balance.",
-      CREDIT: "This tenant has a credit on the account. Record payments or charges instead.",
-      OVERDUE_TOO_LOW: "Overdue is lower than what the ledger already shows. Remove a charge or record a payment instead.",
-      BALANCE_TOO_LOW: "Total balance is lower than what the ledger already shows. Remove a charge or record a payment instead.",
-    };
-    const code = String(plan.error);
-    const msg = messages[code] ?? "Could not adjust the balance.";
-    const field = code === "OVERDUE_GT_BALANCE" || code === "OVERDUE_TOO_LOW" ? "overdue" : "balance";
-    return fail(msg, { [field]: [msg] });
-  }
-
   const keys = adjKeys(lease.id);
-  const overDue = addDays(today, -1);
-  const restDue = addDays(today, 30);
+  // "over" line sorts BEFORE every real charge (so a credit is applied to the oldest debt first and
+  // an extra charge is overdue); "rest" line sorts AFTER every real charge (not yet due / total-only credit).
+  const real = lease.charges.filter((c) => !c.key?.startsWith(ADJ_PREFIX));
+  const times = real.map((c) => c.dueDate.getTime());
+  const earliest = times.length ? new Date(Math.min(...times)) : today;
+  const latest = times.length ? new Date(Math.max(...times)) : today;
+  const overDue = addDays(earliest < today ? earliest : today, -1);
+  const restDue = addDays(latest > addDays(today, 30) ? latest : addDays(today, 30), 1);
+  const plan = solveAdjustment({ charges: lease.charges, payments: lease.payments, graceDays: lease.graceDays, today, overDue, restDue, targetBalance, targetOverdue });
+  if ("error" in plan) {
+    const msg = "Overdue cannot be more than the total balance.";
+    return fail(msg, { overdue: [msg] });
+  }
   await db.$transaction(async (tx) => {
     await tx.charge.deleteMany({ where: { leaseId: lease.id, key: { in: [keys.over, keys.rest] } } });
-    if (plan.over > 0) {
+    if (plan.over !== 0) {
       await tx.charge.create({
-        data: { leaseId: lease.id, type: "OTHER", period: periodOf(overDue), description: "Balance adjustment (overdue)", amount: plan.over, dueDate: overDue, key: keys.over },
+        data: { leaseId: lease.id, type: "OTHER", period: periodOf(overDue), description: plan.over > 0 ? "Balance adjustment (overdue)" : "Balance adjustment (credit)", amount: plan.over, dueDate: overDue, key: keys.over },
       });
     }
-    if (plan.rest > 0) {
+    if (plan.rest !== 0) {
       await tx.charge.create({
-        data: { leaseId: lease.id, type: "OTHER", period: periodOf(restDue), description: "Balance adjustment (not yet due)", amount: plan.rest, dueDate: restDue, key: keys.rest },
+        data: { leaseId: lease.id, type: "OTHER", period: periodOf(restDue), description: plan.rest > 0 ? "Balance adjustment (not yet due)" : "Balance adjustment (credit)", amount: plan.rest, dueDate: restDue, key: keys.rest },
       });
     }
   });

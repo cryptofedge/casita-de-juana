@@ -143,7 +143,7 @@ export function AdjustBalanceForm({
         <Input id="adj-overdue" inputMode="decimal" {...form.register("overdue")} />
       </Field>
       <p className="rounded-lg bg-info-soft px-3 py-2 text-xs text-muted-foreground">
-        {t("Without adjustments the ledger shows {balance} total, {overdue} overdue. The app adds labelled “Balance adjustment” lines for the difference. You can delete them from the ledger at any time.", { balance: baseBalance, overdue: baseOverdue })}
+        {t("Without adjustments the ledger shows {balance} total, {overdue} overdue. Enter any figures you want (higher or lower): the app adds labelled “Balance adjustment” lines for the difference. You can delete them from the ledger at any time.", { balance: baseBalance, overdue: baseOverdue })}
       </p>
       <SubmitButton pending={pending} className="w-full">{t("Save balance")}</SubmitButton>
     </form>

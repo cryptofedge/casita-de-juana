@@ -108,7 +108,7 @@ export default async function TenantDetail({ params }: PageProps<"/admin/tenants
                     <Td className="text-right tabular-nums">{m(r.paid, lease.currency)}</Td>
                     <Td><PaymentStatusBadge status={r.status} /></Td>
                     <Td className="text-right">
-                      {(r.type === "LATE_FEE" || r.type === "OTHER") && r.amount > 0 && (
+                      {(r.type === "LATE_FEE" || r.type === "OTHER") && r.amount !== 0 && (
                         <ActionButton size="sm" variant="ghost" aria-label={r.type === "LATE_FEE" ? tr("Waive late fee") : tr("Delete charge")} confirm={r.type === "LATE_FEE" ? tr("Waive this late fee?") : tr("Delete this charge?")} action={deleteChargeAction.bind(null, r.id)}>
                           <Trash2 />
                         </ActionButton>

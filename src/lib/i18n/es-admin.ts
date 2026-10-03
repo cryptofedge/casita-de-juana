@@ -289,8 +289,9 @@ const admin: Record<string, string> = {
   "Overdue part ({cur})": "Parte vencida ({cur})",
   "Everything the tenant owes right now, overdue or not.": "Todo lo que el inquilino debe ahora, vencido o no.",
   "The portion of the balance that is already past due.": "La parte del saldo que ya está vencida.",
-  "Without adjustments the ledger shows {balance} total, {overdue} overdue. The app adds labelled “Balance adjustment” lines for the difference. You can delete them from the ledger at any time.":
-    "Sin ajustes, el libro muestra {balance} en total, {overdue} vencido. La app agrega líneas «Ajuste de saldo» por la diferencia. Puede eliminarlas del libro en cualquier momento.",
+  "Without adjustments the ledger shows {balance} total, {overdue} overdue. Enter any figures you want (higher or lower): the app adds labelled “Balance adjustment” lines for the difference. You can delete them from the ledger at any time.":
+    "Sin ajustes, el libro muestra {balance} en total, {overdue} vencido. Ingrese las cifras que quiera (más altas o más bajas): la app agrega líneas «Ajuste de saldo» por la diferencia. Puede eliminarlas del libro en cualquier momento.",
+  "Balance adjustment (credit)": "Ajuste de saldo (crédito)",
   "Save balance": "Guardar saldo",
   "Balance adjustment (overdue)": "Ajuste de saldo (vencido)",
   "Balance adjustment (not yet due)": "Ajuste de saldo (aún no vence)",
