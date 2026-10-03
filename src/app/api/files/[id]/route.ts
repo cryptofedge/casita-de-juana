@@ -30,6 +30,7 @@ export async function GET(req: Request, ctx: RouteContext<"/api/files/[id]">) {
             ? [
                 { payments: { some: { leaseId: lease.id } } },
                 { readings: { some: { unitId: lease.unitId } } },
+                { submissions: { some: { leaseId: lease.id } } },
               ]
             : []),
           { attachments: { some: { ticket: { createdById: user.id } } } },

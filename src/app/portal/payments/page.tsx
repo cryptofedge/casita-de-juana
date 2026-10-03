@@ -3,6 +3,13 @@ import { getLeaseLedger } from "@/lib/billing";
 import { fmtDate } from "@/lib/dates";
 import { getI18n } from "@/lib/i18n/server";
 import { chargeLabel } from "@/lib/i18n/charge-label";
+import { db } from "@/lib/db";
+import { toDateInput, todayLocal } from "@/lib/dates";
+import { Plus } from "lucide-react";
+import { FormDialog } from "@/components/forms/form-dialog";
+import { SubmitProofForm } from "@/components/portal/submit-proof-form";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { CHARGE_TYPE_LABEL, PAYMENT_METHOD_LABEL, PAYMENT_STATUS_LABEL } from "@/lib/labels";
 import { moneyFormatter } from "@/lib/money";
 import { requireTenant } from "@/lib/session";
@@ -26,6 +33,7 @@ export default async function PortalPayments() {
   // Scoped to the signed-in tenant's own lease (from the session, never from the URL)
   const { ledger, payments } = await getLeaseLedger(lease.id);
   const rows = [...ledger.rows].reverse();
+  const submissions = await db.paymentSubmission.findMany({ where: { leaseId: lease.id }, orderBy: { createdAt: "desc" }, take: 10, include: { receipt: true } });
 
   return (
     <div className="space-y-6">
@@ -39,6 +47,37 @@ export default async function PortalPayments() {
           <span className="text-muted-foreground">{t("Due day")} <strong className="text-foreground">{lease.dueDay}</strong></span>
         </div>
       </Card>
+
+      <FormDialog
+        trigger={<Button size="lg" className="w-full"><Plus /> {t("I made a payment")}</Button>}
+        title="Send proof of payment"
+        description="Upload a screenshot or receipt. The owner will review it and, once approved, it appears in your payments."
+      >
+        <SubmitProofForm currency={lease.currency} today={toDateInput(todayLocal())} />
+      </FormDialog>
+
+      {submissions.length > 0 && (
+        <section>
+          <h2 className="mb-2 text-lg font-semibold">{t("Payments sent for review")}</h2>
+          <div className="space-y-2">
+            {submissions.map((s) => (
+              <Card key={s.id} className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="font-semibold tabular-nums">{m(s.amount, lease.currency)}</div>
+                    <div className="text-xs text-muted-foreground">{t(PAYMENT_METHOD_LABEL[s.method])} · {t("Paid on {date}", { date: fmtDate(s.paidAt, locale) })}</div>
+                  </div>
+                  <Badge tone={s.status === "APPROVED" ? "green" : s.status === "REJECTED" ? "red" : "amber"}>
+                    {t(s.status === "APPROVED" ? "Approved" : s.status === "REJECTED" ? "Rejected" : "Waiting for approval")}
+                  </Badge>
+                </div>
+                {s.status === "REJECTED" && s.rejectReason && <div className="mt-2 text-sm text-destructive">{t("Reason: {reason}", { reason: s.rejectReason })}</div>}
+                <div className="mt-2"><FileLink id={s.receipt.id} name={s.receipt.filename} mime={s.receipt.mime} label={t("Receipt")} /></div>
+              </Card>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section>
         <h2 className="mb-2 text-lg font-semibold">{t("Charges")}</h2>

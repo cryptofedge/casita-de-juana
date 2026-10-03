@@ -11,6 +11,7 @@ import { getMoneyContext } from "@/lib/settings";
 import { buildStatement } from "@/lib/statement";
 import { deletePaymentAction, runBillingAction } from "@/actions/finance";
 import { ChargeForm, PaymentForm } from "@/components/admin/finance-forms";
+import { PendingSubmissions } from "@/components/admin/pending-submissions";
 import { ActionButton } from "@/components/forms/action-button";
 import { FormDialog } from "@/components/forms/form-dialog";
 import { Button } from "@/components/ui/button";
@@ -66,6 +67,8 @@ export default async function FinancePage({ searchParams }: PageProps<"/admin/fi
           </>
         }
       />
+
+      <PendingSubmissions />
 
       <div className="mb-5 flex flex-wrap items-end gap-3">
         <form method="get" className="flex items-end gap-2">

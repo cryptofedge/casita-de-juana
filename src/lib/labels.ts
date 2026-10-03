@@ -1,6 +1,7 @@
 export const PAYMENT_METHOD_LABEL: Record<string, string> = {
   CASH: "Cash",
   BANK_TRANSFER: "Bank transfer",
+  ZELLE: "Zelle",
   PAYPAL: "PayPal",
   STRIPE: "Stripe",
 };

@@ -89,6 +89,9 @@ remembered in a cookie; first visit follows the browser (`Accept-Language`). The
 - Content typed by the owner (notices, contact names, ticket text) is shown as written; charge names ("Rent - October 2026")
   are rebuilt in the tenant's language from type + period.
 
+### Payment proof from tenants
+Tenants can tap **I made a payment** on the Rent page and upload a screenshot or receipt (amount, date, method incl. **Zelle**). It shows as *Waiting for approval* and does **not** change their balance. The owner sees a banner on the dashboard and a queue on **Rent & Payments**: **Approve** (can correct amount/method/date and pick which charge it pays) posts a real payment with the screenshot attached; **Reject** sends it back with an optional reason. A tenant can have at most 3 submissions waiting.
+
 ### Money & billing rules
 - Amounts are stored in **minor units** (cents) in each lease's currency (USD or DOP). The header toggle shows
   everything in USD or DOP using the exchange rate from *Settings*.

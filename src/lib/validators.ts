@@ -88,7 +88,7 @@ export const leaseUpdateSchema = inviteTenantSchema
 export const paymentSchema = z.object({
   leaseId: z.string().min(1, "Choose a unit"),
   amount: moneyPositive,
-  method: z.enum(["CASH", "BANK_TRANSFER", "PAYPAL", "STRIPE"]),
+  method: z.enum(["CASH", "BANK_TRANSFER", "ZELLE", "PAYPAL", "STRIPE"]),
   paidAt: dateStr,
   chargeId: z.string().optional(),
   reference: optional(120),
@@ -99,6 +99,27 @@ export const adjustBalanceSchema = z.object({
   leaseId: z.string().min(1),
   balance: money,
   overdue: money,
+});
+
+export const submissionSchema = z.object({
+  amount: moneyPositive,
+  method: z.enum(["CASH", "BANK_TRANSFER", "ZELLE", "PAYPAL", "STRIPE"]),
+  paidAt: dateStr,
+  reference: optional(120),
+  note: optional(300),
+});
+
+export const approveSubmissionSchema = z.object({
+  submissionId: z.string().min(1),
+  amount: moneyPositive,
+  method: z.enum(["CASH", "BANK_TRANSFER", "ZELLE", "PAYPAL", "STRIPE"]),
+  paidAt: dateStr,
+  chargeId: z.string().optional(),
+});
+
+export const rejectSubmissionSchema = z.object({
+  submissionId: z.string().min(1),
+  reason: optional(300),
 });
 
 export const chargeSchema = z.object({

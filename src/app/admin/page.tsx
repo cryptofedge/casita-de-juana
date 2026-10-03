@@ -27,6 +27,7 @@ export default async function AdminDashboard() {
   const today = todayLocal();
   const nowP = currentPeriod();
 
+  const waitingProofs = await db.paymentSubmission.count({ where: { status: "PENDING" } });
   const [units, leases, tickets, recentPayments] = await Promise.all([
     db.unit.findMany({ where: { active: true }, orderBy: [{ floor: "asc" }, { label: "asc" }] }),
     db.lease.findMany({ where: { active: true }, include: { tenant: true, charges: true, payments: true } }),
@@ -69,6 +70,13 @@ export default async function AdminDashboard() {
   return (
     <>
       <PageHeader title={tr("Dashboard")} description={tr("{period} · amounts shown in {cur}", { period: fmtPeriod(nowP, locale), cur: display })} />
+
+      {waitingProofs > 0 && (
+        <Link href="/admin/finance" className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-gold/60 bg-warning-soft px-4 py-3 text-sm font-semibold">
+          <span>{tr("{n} payment(s) waiting for your approval", { n: waitingProofs })}</span>
+          <span className="text-primary">{tr("Review")} →</span>
+        </Link>
+      )}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label={tr("Collected this month")} value={m(collectedThisMonth, display)} sub={tr("of {amount} monthly rent", { amount: m(expectedRent, display) })} tone="good" icon={<Wallet className="size-4" />} />
