@@ -3,10 +3,14 @@
 import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
 import { Button, type ButtonProps } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import type { ActionResult } from "@/lib/validators";
 import { useT } from "@/lib/i18n/provider";
 
-/** One-click server action (delete, toggle...) with optional confirm and inline error. */
+/**
+ * One-click server action (delete, toggle...) with an optional in-page confirmation and inline error.
+ * (An in-page dialog instead of window.confirm: works well on phones and is testable.)
+ */
 export function ActionButton({
   action,
   confirm,
@@ -21,22 +25,20 @@ export function ActionButton({
   const { t } = useT();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [asking, setAsking] = useState(false);
+
+  const run = () => {
+    setError(null);
+    start(async () => {
+      const r = await action();
+      if (!r.ok) setError(r.error);
+      onResult?.(r);
+    });
+  };
+
   return (
     <>
-      <Button
-        type="button"
-        disabled={pending}
-        onClick={() => {
-          if (confirm && !window.confirm(confirm)) return;
-          setError(null);
-          start(async () => {
-            const r = await action();
-            if (!r.ok) setError(r.error);
-            onResult?.(r);
-          });
-        }}
-        {...props}
-      >
+      <Button type="button" disabled={pending} onClick={() => (confirm ? setAsking(true) : run())} {...props}>
         {pending && <Loader2 className="animate-spin" />}
         {children}
       </Button>
@@ -44,6 +46,27 @@ export function ActionButton({
         <span role="alert" className="ml-2 text-xs font-medium text-destructive">
           {t(error)}
         </span>
+      )}
+      {confirm && (
+        <Dialog open={asking} onOpenChange={setAsking}>
+          <DialogContent title={confirm}>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setAsking(false)}>
+                {t("Cancel")}
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => {
+                  setAsking(false);
+                  run();
+                }}
+              >
+                {t("Confirm")}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </>
   );

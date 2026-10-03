@@ -271,6 +271,9 @@ const admin: Record<string, string> = {
   "Oldest charge first (automatic)": "Cargo más antiguo primero (automático)",
   "Choose which charge this payment is for. Leave on automatic to pay the oldest charge first.": "Elija a qué cargo corresponde este pago. Déjelo en automático para pagar primero el cargo más antiguo.",
 
+  "Cancel": "Cancelar",
+  "Confirm": "Confirmar",
+
   // Account / change password
   "Account": "Cuenta",
   "Change password": "Cambiar contraseña",
