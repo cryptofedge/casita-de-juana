@@ -62,10 +62,21 @@ export async function addBuildingBillAction(fd: FormData): Promise<ActionResult>
   return saveBill(fd, null, owner.id);
 }
 
+/** Owner: allow (or stop allowing) a tenant to add their own Edenorte account. Off by default. */
+export async function setEdenorteAccessAction(leaseId: string, enabled: boolean): Promise<ActionResult> {
+  await assertOwner();
+  const lease = await db.lease.findUnique({ where: { id: leaseId } });
+  if (!lease) return fail("Lease not found.");
+  await db.lease.update({ where: { id: leaseId }, data: { edenorteAccess: enabled } });
+  refresh();
+  return { ok: true };
+}
+
 /** Tenant with their own Edenorte contract: save the NIC on their own lease. */
 export async function saveTenantNicAction(fd: FormData): Promise<ActionResult> {
   const ctx = await assertTenant();
   if (!ctx.lease) return fail("You do not have an active lease.");
+  if (!ctx.lease.edenorteAccess) return fail("The owner has not turned this on for your account.");
   const p = parseForm(nicSchema, fd);
   if (!p.ok) return p.result;
   await db.lease.update({ where: { id: ctx.lease.id }, data: { ownEdenorteNic: p.data.nic || null } });
@@ -77,6 +88,7 @@ export async function saveTenantNicAction(fd: FormData): Promise<ActionResult> {
 export async function addTenantBillAction(fd: FormData): Promise<ActionResult> {
   const ctx = await assertTenant();
   if (!ctx.lease) return fail("You do not have an active lease.");
+  if (!ctx.lease.edenorteAccess) return fail("The owner has not turned this on for your account.");
   const res = await saveBill(fd, ctx.lease.unitId, ctx.user.id);
   if (res.ok) {
     after(() =>

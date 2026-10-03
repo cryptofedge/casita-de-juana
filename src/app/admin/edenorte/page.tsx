@@ -32,7 +32,7 @@ export default async function EdenortePage() {
     db.utilityBill.findMany({ where: { unitId: null }, orderBy: { period: "desc" }, take: 24, include: { file: true } }),
     db.meterReading.findMany({ select: { period: true, previousKwh: true, currentKwh: true } }),
     db.lease.findMany({
-      where: { active: true, ownEdenorteNic: { not: null } },
+      where: { active: true, edenorteAccess: true, ownEdenorteNic: { not: null } },
       include: { tenant: true, unit: true },
       orderBy: { unit: { label: "asc" } },
     }),
@@ -119,7 +119,7 @@ export default async function EdenortePage() {
           <Card>
             <CardHeader><CardTitle>{tr("Tenants with their own account")}</CardTitle></CardHeader>
             <CardContent className="space-y-3 text-sm">
-              {ownAccounts.length === 0 && <p className="text-muted-foreground">{tr("No tenant has added their own Edenorte account.")}</p>}
+              {ownAccounts.length === 0 && <p className="text-muted-foreground">{tr("No tenant has added their own Edenorte account. You choose who may, on each tenant's page.")}</p>}
               {ownAccounts.map((l) => {
                 const mine = tenantBills.filter((b) => b.unitId === l.unitId).slice(0, 4);
                 return (

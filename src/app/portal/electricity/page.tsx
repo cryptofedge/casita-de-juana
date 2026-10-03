@@ -98,6 +98,7 @@ export default async function PortalElectricity() {
         </section>
       )}
 
+      {lease.edenorteAccess && (
       <section className="space-y-3 border-t pt-5">
         <h2 className="text-lg font-semibold">{t("Do you have your own Edenorte account?")}</h2>
         <p className="text-sm text-muted-foreground">
@@ -132,6 +133,7 @@ export default async function PortalElectricity() {
           </>
         )}
       </section>
+      )}
     </div>
   );
 }

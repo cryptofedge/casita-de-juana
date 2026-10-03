@@ -355,6 +355,15 @@ const admin: Record<string, string> = {
   "Off: ask whoever set up the site to add RESEND_API_KEY.": "Desactivadas: pida a quien configuró el sitio que agregue RESEND_API_KEY.",
   "Sent to: {emails}": "Se envían a: {emails}",
 
+  // Edenorte permission
+  "The owner has not turned this on for your account.": "La propietaria no ha activado esto para su cuenta.",
+  "Own Edenorte account": "Cuenta propia de Edenorte",
+  "This tenant can save their own Edenorte number and log their own bills.": "Este inquilino puede guardar su propio número de Edenorte y registrar sus propias facturas.",
+  "Off. Turn on if this tenant has their own Edenorte contract and may log their bills.": "Desactivado. Actívelo si este inquilino tiene su propio contrato de Edenorte y puede registrar sus facturas.",
+  "Turn off": "Desactivar",
+  "Allow": "Permitir",
+  "No tenant has added their own Edenorte account. You choose who may, on each tenant's page.": "Ningún inquilino ha agregado su propia cuenta de Edenorte. Usted decide quién puede, en la página de cada inquilino.",
+
   // Account / change password
   "Account": "Cuenta",
   "Change password": "Cambiar contraseña",

@@ -10,6 +10,7 @@ import { CHARGE_TYPE_LABEL, DOC_TYPE_LABEL, PAYMENT_METHOD_LABEL } from "@/lib/l
 import { moneyFormatter } from "@/lib/money";
 import { getMoneyContext } from "@/lib/settings";
 import { deleteChargeAction, deletePaymentAction } from "@/actions/finance";
+import { setEdenorteAccessAction } from "@/actions/edenorte";
 import { endLeaseAction as endLease } from "@/actions/tenants";
 import { AdjustBalanceForm, ChargeForm, PaymentForm } from "@/components/admin/finance-forms";
 import { adjustmentBase } from "@/lib/adjust";
@@ -163,6 +164,17 @@ export default async function TenantDetail({ params }: PageProps<"/admin/tenants
                       deposit: (lease.deposit / 100).toFixed(2),
                     }} />
                   </FormDialog>
+                  <div className="rounded-lg border bg-secondary/40 p-3">
+                    <div className="text-sm font-medium">{tr("Own Edenorte account")}</div>
+                    <p className="mb-2 text-xs text-muted-foreground">
+                      {lease.edenorteAccess
+                        ? tr("This tenant can save their own Edenorte number and log their own bills.")
+                        : tr("Off. Turn on if this tenant has their own Edenorte contract and may log their bills.")}
+                    </p>
+                    <ActionButton size="sm" variant={lease.edenorteAccess ? "outline" : "default"} action={setEdenorteAccessAction.bind(null, lease.id, !lease.edenorteAccess)}>
+                      {lease.edenorteAccess ? tr("Turn off") : tr("Allow")}
+                    </ActionButton>
+                  </div>
                   <ResetLinkButton userId={tenant.id} />
                   <ActionButton variant="destructive" className="w-full" confirm={tr("End the lease for {name}? They will no longer be able to sign in.", { name: tenant.name })} action={endLease.bind(null, lease.id)}>
                     <UserX /> {tr("End lease & revoke access")}

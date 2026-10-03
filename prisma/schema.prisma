@@ -129,6 +129,7 @@ model Lease {
   payments       Payment[]
   submissions    PaymentSubmission[]
   ownEdenorteNic String? // tenant has their own Edenorte contract (NIC)
+  edenorteAccess Boolean @default(false) // only the owner can switch this on for a tenant
 
   @@index([unitId, active])
   @@index([tenantId])
