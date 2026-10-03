@@ -12,6 +12,9 @@ import { getMoneyContext } from "@/lib/settings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PaymentStatusBadge, PriorityBadge, TicketStatusBadge } from "@/components/ui/badge";
 import { EmptyState, PageHeader, Stat } from "@/components/shared/page";
+import { ActionButton } from "@/components/forms/action-button";
+import { markActivitySeenAction } from "@/actions/activity";
+import { getNewActivity } from "@/lib/activity";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getI18n();
@@ -27,6 +30,7 @@ export default async function AdminDashboard() {
   const today = todayLocal();
   const nowP = currentPeriod();
 
+  const news = await getNewActivity();
   const waitingProofs = await db.paymentSubmission.count({ where: { status: "PENDING" } });
   const [units, leases, tickets, recentPayments] = await Promise.all([
     db.unit.findMany({ where: { active: true }, orderBy: [{ floor: "asc" }, { label: "asc" }] }),
@@ -76,6 +80,35 @@ export default async function AdminDashboard() {
           <span>{tr("{n} payment(s) waiting for your approval", { n: waitingProofs })}</span>
           <span className="text-primary">{tr("Review")} →</span>
         </Link>
+      )}
+
+      {news.length > 0 && (
+        <Card className="mb-4">
+          <CardHeader className="flex-row items-center justify-between gap-2">
+            <CardTitle>{tr("What's new")}</CardTitle>
+            <ActionButton size="sm" variant="outline" action={markActivitySeenAction}>
+              {tr("Mark all as seen")}
+            </ActionButton>
+          </CardHeader>
+          <CardContent>
+            <ul className="divide-y text-sm">
+              {news.map((n) => (
+                <li key={n.id}>
+                  <Link href={n.href} className="flex items-start justify-between gap-3 py-2 hover:underline">
+                    <span>
+                      <span className="font-semibold">{n.who}</span> ({tr("Apt {unit}", { unit: n.unit })}){" "}
+                      {n.kind === "ticket" && tr("sent a maintenance request: {title}", { title: n.detail })}
+                      {n.kind === "message" && tr("replied on: {title}", { title: n.detail })}
+                      {n.kind === "proof" && tr("sent a payment proof to approve")}
+                      {n.kind === "bill" && tr("logged an Edenorte bill for {period}", { period: n.detail })}
+                    </span>
+                    <span className="shrink-0 text-xs text-muted-foreground">{fmtDate(n.at, locale)}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
       )}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">

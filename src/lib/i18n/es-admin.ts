@@ -355,6 +355,13 @@ const admin: Record<string, string> = {
   "Off: ask whoever set up the site to add RESEND_API_KEY.": "Desactivadas: pida a quien configuró el sitio que agregue RESEND_API_KEY.",
   "Sent to: {emails}": "Se envían a: {emails}",
 
+  "What's new": "Novedades",
+  "Mark all as seen": "Marcar todo como visto",
+  "sent a maintenance request: {title}": "envió una solicitud de mantenimiento: {title}",
+  "replied on: {title}": "respondió en: {title}",
+  "sent a payment proof to approve": "envió un comprobante de pago para aprobar",
+  "logged an Edenorte bill for {period}": "registró una factura de Edenorte de {period}",
+
   // Edenorte permission
   "The owner has not turned this on for your account.": "La propietaria no ha activado esto para su cuenta.",
   "Own Edenorte account": "Cuenta propia de Edenorte",
