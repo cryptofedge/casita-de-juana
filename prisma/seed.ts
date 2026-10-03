@@ -50,6 +50,7 @@ async function wipe() {
   await db.ticketMessage.deleteMany();
   await db.ticket.deleteMany();
   await db.meterReading.deleteMany();
+  await db.paymentSubmission.deleteMany();
   await db.payment.deleteMany();
   await db.charge.deleteMany();
   await db.document.deleteMany();
