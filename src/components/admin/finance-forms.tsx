@@ -155,11 +155,11 @@ export function AdjustBalanceForm({
       <Field label={t("Total balance ({cur})", { cur: currency })} htmlFor="adj-balance" error={err("balance")} hint="Everything the tenant owes right now, overdue or not.">
         <Input id="adj-balance" inputMode="decimal" {...form.register("balance")} />
       </Field>
-      <Field label={t("Overdue part ({cur})", { cur: currency })} htmlFor="adj-overdue" error={err("overdue")} hint="The portion of the balance that is already past due.">
+      <Field label={t("Overdue rent ({cur})", { cur: currency })} htmlFor="adj-overdue" error={err("overdue")} hint="The part of the balance that is overdue rent. Only rent counts as overdue; other charges count in the total balance only.">
         <Input id="adj-overdue" inputMode="decimal" {...form.register("overdue")} />
       </Field>
       <p className="rounded-lg bg-info-soft px-3 py-2 text-xs text-muted-foreground">
-        {t("Without adjustments the ledger shows {balance} total, {overdue} overdue. Enter any figures you want (higher or lower): the app adds labelled “Balance adjustment” lines for the difference. You can delete them from the ledger at any time.", { balance: baseBalance, overdue: baseOverdue })}
+        {t("Without adjustments the ledger shows {balance} total, {overdue} overdue rent. Enter any figures you want (higher or lower): the app adds labelled “Balance adjustment” lines for the difference. You can delete them from the ledger at any time.", { balance: baseBalance, overdue: baseOverdue })}
       </p>
       <SubmitButton pending={pending} className="w-full">{t("Save balance")}</SubmitButton>
     </form>

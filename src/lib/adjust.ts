@@ -57,7 +57,7 @@ export function solveAdjustment(opts: {
   let over = opts.targetOverdue - base.overdue;
   for (let i = 0; i < 8; i++) {
     const lines: LedgerCharge[] = over !== 0
-      ? [{ id: "adj-over", type: "OTHER", period: "adj", description: "adj", amount: over, dueDate: opts.overDue }]
+      ? [{ id: "adj-over", type: "OTHER", period: "adj", description: "adj", amount: over, dueDate: opts.overDue, key: `${ADJ_PREFIX}over:x` }]
       : [];
     const overdueNow = buildLedger([...real, ...lines], opts.payments, opts.today, opts.graceDays).overdue;
     const diff = opts.targetOverdue - overdueNow;

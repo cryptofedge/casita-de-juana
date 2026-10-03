@@ -10,6 +10,8 @@ export interface LedgerCharge {
   amount: number;
   dueDate: Date;
   createdAt?: Date;
+  /** Idempotency key; "adj:over:*" marks the owner's own "overdue" adjustment line. */
+  key?: string | null;
 }
 
 export interface LedgerPayment {
@@ -43,7 +45,9 @@ export interface Ledger {
  * derives each charge's status.
  *
  *  - PAID     nothing left to pay
- *  - OVERDUE  unpaid and past due date + grace (only rent gets grace days)
+ *  - OVERDUE  unpaid RENT past its due date + grace. Only rent can be overdue (plus the owner's own
+ *             "overdue" adjustment line); every other charge stays PENDING/PARTIAL until paid.
+ *             The balance still includes everything.
  *  - PARTIAL  something paid, not yet overdue
  *  - PENDING  nothing paid, not yet overdue
  */
@@ -76,11 +80,27 @@ export function buildLedger(
       pool += p.amount;
     }
   }
+  // The owner's negative "overdue" adjustment line is a credit for overdue rent: it is applied to
+  // the oldest rent first (anything left over joins the oldest-first pool).
+  const isCredit = (c: LedgerCharge) => c.amount < 0 && !!c.key?.startsWith("adj:over:");
+  let credit = sorted.filter(isCredit).reduce((s, c) => s - c.amount, 0);
+  const credited = new Map<string, number>();
+  for (const c of sorted) {
+    if (credit <= 0) break;
+    if (c.type !== "RENT" || c.amount <= 0) continue;
+    const use = Math.min(credit, Math.max(0, c.amount - (directed.get(c.id) ?? 0)));
+    if (use > 0) {
+      credited.set(c.id, use);
+      credit -= use;
+    }
+  }
+  pool += credit;
   let overdue = 0;
   let dueNow = 0;
 
   const rows: LedgerRow[] = sorted.map((c) => {
-    const direct = directed.get(c.id) ?? 0;
+    if (isCredit(c)) return { ...c, paid: c.amount, remaining: 0, status: "PAID" as ChargeStatus };
+    const direct = (directed.get(c.id) ?? 0) + (credited.get(c.id) ?? 0);
     const fifo = Math.min(pool, c.amount - direct);
     pool -= fifo;
     const paid = direct + fifo;
@@ -89,7 +109,7 @@ export function buildLedger(
     const pastDue = today.getTime() > addDays(c.dueDate, grace).getTime();
     let status: ChargeStatus;
     if (remaining <= 0) status = "PAID";
-    else if (pastDue && c.type !== "LATE_FEE") status = "OVERDUE";
+    else if (pastDue && (c.type === "RENT" || c.key?.startsWith("adj:over:"))) status = "OVERDUE";
     else if (paid > 0) status = "PARTIAL";
     else status = "PENDING";
     if (status === "OVERDUE") overdue += remaining;

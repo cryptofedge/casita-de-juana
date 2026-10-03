@@ -391,11 +391,11 @@ const admin: Record<string, string> = {
   "Adjust balance": "Ajustar saldo",
   "Set the total balance and the overdue amount directly.": "Establezca directamente el saldo total y el monto vencido.",
   "Total balance ({cur})": "Saldo total ({cur})",
-  "Overdue part ({cur})": "Parte vencida ({cur})",
+  "Overdue rent ({cur})": "Renta vencida ({cur})",
   "Everything the tenant owes right now, overdue or not.": "Todo lo que el inquilino debe ahora, vencido o no.",
-  "The portion of the balance that is already past due.": "La parte del saldo que ya está vencida.",
-  "Without adjustments the ledger shows {balance} total, {overdue} overdue. Enter any figures you want (higher or lower): the app adds labelled “Balance adjustment” lines for the difference. You can delete them from the ledger at any time.":
-    "Sin ajustes, el libro muestra {balance} en total, {overdue} vencido. Ingrese las cifras que quiera (más altas o más bajas): la app agrega líneas «Ajuste de saldo» por la diferencia. Puede eliminarlas del libro en cualquier momento.",
+  "The part of the balance that is overdue rent. Only rent counts as overdue; other charges count in the total balance only.": "La parte del saldo que es renta vencida. Solo la renta cuenta como vencida; los demás cargos cuentan solo en el saldo total.",
+  "Without adjustments the ledger shows {balance} total, {overdue} overdue rent. Enter any figures you want (higher or lower): the app adds labelled “Balance adjustment” lines for the difference. You can delete them from the ledger at any time.":
+    "Sin ajustes, el libro muestra {balance} en total, {overdue} de renta vencida. Ingrese las cifras que quiera (más altas o más bajas): la app agrega líneas «Ajuste de saldo» por la diferencia. Puede eliminarlas del libro en cualquier momento.",
   "Balance adjustment (credit)": "Ajuste de saldo (crédito)",
   "Save balance": "Guardar saldo",
   "Balance adjustment (overdue)": "Ajuste de saldo (vencido)",

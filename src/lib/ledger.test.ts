@@ -69,6 +69,17 @@ describe("buildLedger", () => {
   });
 });
 
+describe("overdue only refers to rent", () => {
+  it("keeps non-rent charges out of overdue but in the balance", () => {
+    const elec: LedgerCharge = { id: "e", type: "ELECTRICITY", period: "2026-09", description: "Electricity", amount: 40_00, dueDate: d("2026-09-10") };
+    const other: LedgerCharge = { id: "o", type: "OTHER", period: "2026-09", description: "Repair", amount: 25_00, dueDate: d("2026-09-10") };
+    const l = buildLedger([elec, other, rent("2026-10")], [], d("2026-10-20"), 5);
+    expect(l.balance).toBe(165_00);
+    expect(l.overdue).toBe(100_00);
+    expect(l.rows.find((r) => r.id === "e")!.status).toBe("PENDING");
+  });
+});
+
 describe("computeLateFee", () => {
   it("combines flat and percentage", () => {
     expect(computeLateFee(200_00, 10_00, 5)).toBe(20_00);
@@ -86,7 +97,7 @@ describe("payments aimed at a specific charge", () => {
     expect(byId["r-2026-10"].remaining).toBe(60_00);
     expect(byId["prev"].paid).toBe(0);
     expect(l.balance).toBe(1300_00);
-    expect(l.overdue).toBe(1300_00);
+    expect(l.overdue).toBe(60_00); // only October rent is overdue; the old balance counts in the total only
   });
   it("sends any excess of a directed payment to the oldest charge", () => {
     const l = buildLedger([prev, oct], [{ id: "p", amount: 400_00, paidAt: d("2026-10-02"), chargeId: "r-2026-10" }], d("2026-10-02"), 0);

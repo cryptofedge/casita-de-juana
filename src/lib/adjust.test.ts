@@ -23,7 +23,7 @@ describe("planAdjustment", () => {
 });
 
 describe("adjustment lines produce exactly the requested figures in the ledger", () => {
-  // Real charges: $1,300 from Sep 1 (overdue) and October rent $350 with $290 paid ($60 overdue).
+  // Real charges: $1,300 from Sep 1 (not rent, so never overdue) and October rent $350 with $290 paid ($60 overdue).
   const base: LedgerCharge[] = [
     { id: "prev", type: "OTHER", period: "2026-09", description: "Previous months balance", amount: 1300_00, dueDate: d("2026-09-01") },
     { id: "oct", type: "RENT", period: "2026-10", description: "Rent", amount: 350_00, dueDate: d("2026-10-01") },
@@ -31,13 +31,11 @@ describe("adjustment lines produce exactly the requested figures in the ledger",
   const payments = [{ id: "p", amount: 290_00, paidAt: d("2026-10-02") }];
 
   function apply(targetBalance: number, targetOverdue: number) {
-    const b = buildLedger(base, payments, today, 0);
-    const plan = planAdjustment({ balance: b.balance, overdue: b.overdue }, targetBalance, targetOverdue);
-    if ("error" in plan) throw new Error(plan.error);
+    const r = solveAdjustment({ charges: base, payments, graceDays: 0, today, overDue: d("2026-08-31"), restDue: d("2026-11-01"), targetBalance, targetOverdue });
+    if ("error" in r) throw new Error(r.error);
     const adj: LedgerCharge[] = [];
-    // over line goes before everything, rest line after everything
-    if (plan.over !== 0) adj.push({ id: "over", type: "OTHER", period: "x", description: "adj", amount: plan.over, dueDate: d("2026-08-31") });
-    if (plan.rest !== 0) adj.push({ id: "rest", type: "OTHER", period: "x", description: "adj", amount: plan.rest, dueDate: d("2026-11-01") });
+    if (r.over !== 0) adj.push({ id: "over", type: "OTHER", period: "x", description: "adj", amount: r.over, dueDate: d("2026-08-31"), key: "adj:over:x" });
+    if (r.rest !== 0) adj.push({ id: "rest", type: "OTHER", period: "x", description: "adj", amount: r.rest, dueDate: d("2026-11-01") });
     return buildLedger([...base, ...adj], payments, today, 0);
   }
 
@@ -62,15 +60,15 @@ describe("solveAdjustment", () => {
   const d2 = (s: string) => new Date(`${s}T00:00:00.000Z`);
   it("hits the exact overdue target even when payments spilled onto not-yet-due charges", () => {
     const charges: LedgerCharge[] = [
-      { id: "a", type: "OTHER", period: "2026-09", description: "old", amount: 100_00, dueDate: d2("2026-09-01") },
-      { id: "b", type: "OTHER", period: "2026-12", description: "future", amount: 500_00, dueDate: d2("2026-12-01") },
+      { id: "a", type: "RENT", period: "2026-09", description: "old", amount: 100_00, dueDate: d2("2026-09-01") },
+      { id: "b", type: "RENT", period: "2026-12", description: "future", amount: 500_00, dueDate: d2("2026-12-01") },
     ];
     const payments = [{ id: "p", amount: 300_00, paidAt: d2("2026-10-01") }]; // pays "old" fully, 200 of "future"
     const today2 = d2("2026-10-02");
     const r = solveAdjustment({ charges, payments, graceDays: 0, today: today2, overDue: d2("2026-08-31"), restDue: d2("2027-01-01"), targetBalance: 1000_00, targetOverdue: 250_00 });
     if ("error" in r) throw new Error(r.error);
     const lines: LedgerCharge[] = [];
-    if (r.over !== 0) lines.push({ id: "o", type: "OTHER", period: "x", description: "adj", amount: r.over, dueDate: d2("2026-08-31") });
+    if (r.over !== 0) lines.push({ id: "o", type: "OTHER", period: "x", description: "adj", amount: r.over, dueDate: d2("2026-08-31"), key: "adj:over:x" });
     if (r.rest !== 0) lines.push({ id: "r", type: "OTHER", period: "x", description: "adj", amount: r.rest, dueDate: d2("2027-01-01") });
     const l = buildLedger([...charges, ...lines], payments, today2, 0);
     expect(l.overdue).toBe(250_00);
