@@ -95,6 +95,16 @@ export const paymentSchema = z.object({
   note: optional(300),
 });
 
+export const editPaymentSchema = z.object({
+  paymentId: z.string().min(1),
+  amount: moneyPositive,
+  method: z.enum(["CASH", "BANK_TRANSFER", "ZELLE", "PAYPAL", "STRIPE"]),
+  paidAt: dateStr,
+  chargeId: z.string().optional(),
+  reference: optional(120),
+  note: optional(300),
+});
+
 export const depositSchema = z.object({ leaseId: z.string().min(1), deposit: money });
 
 export const adjustBalanceSchema = z.object({

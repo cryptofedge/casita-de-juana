@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
-import { addChargeAction, adjustBalanceAction, recordPaymentAction } from "@/actions/finance";
+import { addChargeAction, adjustBalanceAction, recordPaymentAction, updatePaymentAction } from "@/actions/finance";
 import { useActionForm } from "@/components/forms/use-action-form";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { FileField } from "@/components/forms/file-field";
 import { Field, FormError, Input, Select, Textarea } from "@/components/ui/form-controls";
 import { PAYMENT_METHOD_LABEL } from "@/lib/labels";
-import { adjustBalanceSchema, chargeSchema, paymentSchema } from "@/lib/validators";
+import { adjustBalanceSchema, chargeSchema, editPaymentSchema, paymentSchema } from "@/lib/validators";
 import { toDateInput } from "@/lib/dates";
 import { useT } from "@/lib/i18n/provider";
 
@@ -86,6 +86,60 @@ export function PaymentForm({ leases, defaultLeaseId, today, charges }: { leases
       </Field>
       <FileField key={fileKey} label="Receipt photo or PDF (optional)" name="receipt" onFiles={setFiles} error={err("receipt" as never)} />
       <SubmitButton pending={pending} className="w-full">{t("Save payment")}</SubmitButton>
+    </form>
+  );
+}
+
+export function EditPaymentForm({
+  payment,
+  charges,
+  currency,
+}: {
+  payment: { id: string; amount: string; method: "CASH" | "BANK_TRANSFER" | "ZELLE" | "PAYPAL" | "STRIPE"; paidAt: string; chargeId: string; reference: string; note: string };
+  charges: ChargeOption[];
+  currency: "USD" | "DOP";
+}) {
+  const { t } = useT();
+  const { form, submit, pending, serverError, err } = useActionForm({
+    schema: editPaymentSchema,
+    defaultValues: { paymentId: payment.id, amount: payment.amount, method: payment.method, paidAt: payment.paidAt, chargeId: payment.chargeId, reference: payment.reference, note: payment.note },
+    action: updatePaymentAction,
+    resetOnSuccess: false,
+  });
+  return (
+    <form method="post" onSubmit={submit} className="space-y-4" noValidate>
+      <FormError message={serverError} />
+      <input type="hidden" {...form.register("paymentId")} />
+      <div className="grid grid-cols-2 gap-3">
+        <Field label={t("Amount ({cur})", { cur: currency })} htmlFor="ep-amount" error={err("amount")}>
+          <Input id="ep-amount" inputMode="decimal" {...form.register("amount")} />
+        </Field>
+        <Field label="Date received" htmlFor="ep-date" error={err("paidAt")}>
+          <Input id="ep-date" type="date" {...form.register("paidAt")} />
+        </Field>
+      </div>
+      <Field label="Apply to" htmlFor="ep-charge" error={err("chargeId")} hint="Choose which charge this payment is for. Leave on automatic to pay the oldest charge first.">
+        <Select id="ep-charge" {...form.register("chargeId")}>
+          <option value="">{t("Oldest charge first (automatic)")}</option>
+          {charges.map((c) => (
+            <option key={c.id} value={c.id}>{c.label}</option>
+          ))}
+        </Select>
+      </Field>
+      <Field label="Method" htmlFor="ep-method" error={err("method")}>
+        <Select id="ep-method" {...form.register("method")}>
+          {Object.entries(PAYMENT_METHOD_LABEL).map(([v, l]) => (
+            <option key={v} value={v}>{t(l)}</option>
+          ))}
+        </Select>
+      </Field>
+      <Field label="Reference (optional)" htmlFor="ep-ref" error={err("reference")}>
+        <Input id="ep-ref" {...form.register("reference")} />
+      </Field>
+      <Field label="Note (optional)" htmlFor="ep-note" error={err("note")}>
+        <Textarea id="ep-note" rows={2} {...form.register("note")} />
+      </Field>
+      <SubmitButton pending={pending} className="w-full">{t("Save changes")}</SubmitButton>
     </form>
   );
 }

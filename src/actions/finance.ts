@@ -13,7 +13,7 @@ import { addDays, periodOf, todayLocal } from "@/lib/dates";
 import { ADJ_PREFIX } from "@/lib/adjust";
 import { PAYMENT_METHOD_LABEL } from "@/lib/labels";
 import type { PaymentMethod } from "@prisma/client";
-import { adjustBalanceSchema, chargeSchema, fail, paymentSchema, type ActionResult } from "@/lib/validators";
+import { adjustBalanceSchema, chargeSchema, editPaymentSchema, fail, paymentSchema, type ActionResult } from "@/lib/validators";
 
 function refresh() {
   revalidatePath("/admin", "layout");
@@ -64,6 +64,28 @@ export async function recordPaymentAction(fd: FormData): Promise<ActionResult> {
 export async function deletePaymentAction(paymentId: string): Promise<ActionResult> {
   await assertOwner();
   await db.payment.delete({ where: { id: paymentId } }).catch(() => null);
+  refresh();
+  return { ok: true };
+}
+
+/** Owner: edit a recorded payment (amount, date, method, which charge it pays, reference, note). */
+export async function updatePaymentAction(fd: FormData): Promise<ActionResult> {
+  await assertOwner();
+  const p = parseForm(editPaymentSchema, fd);
+  if (!p.ok) return p.result;
+  const d = p.data;
+  const payment = await db.payment.findUnique({ where: { id: d.paymentId } });
+  if (!payment) return fail("Payment not found.");
+  let chargeId: string | null = null;
+  if (d.chargeId) {
+    const target = await db.charge.findFirst({ where: { id: d.chargeId, leaseId: payment.leaseId }, select: { id: true } });
+    if (!target) return fail("Charge not found.");
+    chargeId = target.id;
+  }
+  await db.payment.update({
+    where: { id: payment.id },
+    data: { amount: toMinor(d.amount), method: d.method, paidAt: parseDateInput(d.paidAt), chargeId, reference: d.reference || null, note: d.note || null },
+  });
   refresh();
   return { ok: true };
 }

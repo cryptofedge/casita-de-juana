@@ -13,7 +13,7 @@ import { deleteChargeAction, deletePaymentAction } from "@/actions/finance";
 import { setEdenorteAccessAction } from "@/actions/edenorte";
 import { PaymentMethodSelect } from "@/components/admin/payment-method-select";
 import { endLeaseAction as endLease } from "@/actions/tenants";
-import { AdjustBalanceForm, ChargeForm, PaymentForm } from "@/components/admin/finance-forms";
+import { AdjustBalanceForm, ChargeForm, EditPaymentForm, PaymentForm } from "@/components/admin/finance-forms";
 import { adjustmentBase } from "@/lib/adjust";
 import { todayLocal as todayLocalDate } from "@/lib/dates";
 import { DepositForm, LeaseForm, ResetLinkButton } from "@/components/admin/tenant-forms";
@@ -139,7 +139,15 @@ export default async function TenantDetail({ params }: PageProps<"/admin/tenants
                       <Td><PaymentMethodSelect paymentId={p.id} method={p.method} />{p.reference ? <span className="block text-xs text-muted-foreground">{p.reference}</span> : null}{p.note ? <span className="block text-xs text-muted-foreground">{p.note}</span> : null}</Td>
                       <Td className="text-right font-semibold tabular-nums">{m(p.amount, lease.currency)}</Td>
                       <Td>{p.receipt ? <FileLink id={p.receipt.id} name={p.receipt.filename} mime={p.receipt.mime} label={tr("View")} /> : "-"}</Td>
-                      <Td className="text-right"><ActionButton size="sm" variant="ghost" aria-label={tr("Delete payment")} confirm={tr("Delete this payment?")} action={deletePaymentAction.bind(null, p.id)}><Trash2 /></ActionButton></Td>
+                      <Td className="text-right">
+                        <FormDialog trigger={<Button size="sm" variant="ghost" aria-label={tr("Edit payment")}><Pencil /></Button>} title="Edit payment">
+                          <EditPaymentForm
+                            currency={lease.currency}
+                            charges={ledger.rows.filter((r) => r.amount > 0).map((r) => ({ id: r.id, label: `${chargeLabel(r, tr, locale)} · ${m(r.amount, lease.currency)}` }))}
+                            payment={{ id: p.id, amount: (p.amount / 100).toFixed(2), method: p.method, paidAt: toDateInput(p.paidAt), chargeId: p.chargeId ?? "", reference: p.reference ?? "", note: p.note ?? "" }}
+                          />
+                        </FormDialog>
+                        <ActionButton size="sm" variant="ghost" aria-label={tr("Delete payment")} confirm={tr("Delete this payment?")} action={deletePaymentAction.bind(null, p.id)}><Trash2 /></ActionButton></Td>
                     </tr>
                   ))}
                 </tbody>
