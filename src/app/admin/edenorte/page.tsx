@@ -5,7 +5,7 @@ import { addMonths, currentPeriod, fmtDate, fmtPeriod } from "@/lib/dates";
 import { moneyFormatter } from "@/lib/money";
 import { getI18n } from "@/lib/i18n/server";
 import { getMoneyContext, getSettings } from "@/lib/settings";
-import { addBuildingBillAction, deleteBillAction, saveOwnerNicAction } from "@/actions/edenorte";
+import { addBuildingBillAction, deleteBillAction, saveOwnerNicAction, setEdenorteAccessAction } from "@/actions/edenorte";
 import { ActionButton } from "@/components/forms/action-button";
 import { FormDialog } from "@/components/forms/form-dialog";
 import { EdenorteBillForm, NicForm } from "@/components/shared/edenorte-forms";
@@ -32,7 +32,7 @@ export default async function EdenortePage() {
     db.utilityBill.findMany({ where: { unitId: null }, orderBy: { period: "desc" }, take: 24, include: { file: true } }),
     db.meterReading.findMany({ select: { period: true, previousKwh: true, currentKwh: true } }),
     db.lease.findMany({
-      where: { active: true, edenorteAccess: true, ownEdenorteNic: { not: null } },
+      where: { active: true },
       include: { tenant: true, unit: true },
       orderBy: { unit: { label: "asc" } },
     }),
@@ -119,14 +119,20 @@ export default async function EdenortePage() {
           <Card>
             <CardHeader><CardTitle>{tr("Tenants with their own account")}</CardTitle></CardHeader>
             <CardContent className="space-y-3 text-sm">
-              {ownAccounts.length === 0 && <p className="text-muted-foreground">{tr("No tenant has added their own Edenorte account. You choose who may, on each tenant's page.")}</p>}
+              <p className="text-xs text-muted-foreground">{tr("Only you can allow a tenant to add their own Edenorte account. Turn it on for the tenants who have their own contract.")}</p>
+              {ownAccounts.length === 0 && <p className="text-muted-foreground">{tr("No active tenants yet.")}</p>}
               {ownAccounts.map((l) => {
                 const mine = tenantBills.filter((b) => b.unitId === l.unitId).slice(0, 4);
                 return (
                   <div key={l.id} className="rounded-lg border p-3">
                     <div className="font-semibold">{tr("Apt {unit}", { unit: l.unit.label })} · {l.tenant.name}</div>
-                    <div className="text-xs text-muted-foreground">NIC {l.ownEdenorteNic}</div>
-                    {mine.length === 0 ? (
+                    <div className="mt-1 flex items-center justify-between gap-2">
+                      <span className="text-xs text-muted-foreground">{l.edenorteAccess ? (l.ownEdenorteNic ? `NIC ${l.ownEdenorteNic}` : tr("Allowed. They have not added their number yet.")) : tr("Not allowed")}</span>
+                      <ActionButton size="sm" variant={l.edenorteAccess ? "outline" : "default"} action={setEdenorteAccessAction.bind(null, l.id, !l.edenorteAccess)}>
+                        {l.edenorteAccess ? tr("Turn off") : tr("Allow")}
+                      </ActionButton>
+                    </div>
+                    {!l.edenorteAccess ? null : mine.length === 0 ? (
                       <div className="mt-1 text-xs text-muted-foreground">{tr("No bills logged yet")}</div>
                     ) : (
                       <ul className="mt-2 space-y-0.5 text-xs">

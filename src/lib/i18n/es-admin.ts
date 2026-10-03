@@ -369,6 +369,10 @@ const admin: Record<string, string> = {
   "This tenant can save their own Edenorte number and log their own bills.": "Este inquilino puede guardar su propio número de Edenorte y registrar sus propias facturas.",
   "Off. Turn on if this tenant has their own Edenorte contract and may log their bills.": "Desactivado. Actívelo si este inquilino tiene su propio contrato de Edenorte y puede registrar sus facturas.",
   "Turn off": "Desactivar",
+  "Only you can allow a tenant to add their own Edenorte account. Turn it on for the tenants who have their own contract.": "Solo usted puede permitir que un inquilino agregue su propia cuenta de Edenorte. Actívelo para los inquilinos que tienen su propio contrato.",
+  "No active tenants yet.": "Todavía no hay inquilinos activos.",
+  "Allowed. They have not added their number yet.": "Permitido. Aún no han agregado su número.",
+  "Not allowed": "No permitido",
   "Allow": "Permitir",
   "No tenant has added their own Edenorte account. You choose who may, on each tenant's page.": "Ningún inquilino ha agregado su propia cuenta de Edenorte. Usted decide quién puede, en la página de cada inquilino.",
 
