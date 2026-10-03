@@ -1,6 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
+import { notifyOwner } from "@/lib/mail";
+import { formatMoney } from "@/lib/money";
 import { db } from "@/lib/db";
 import { parseDateInput } from "@/lib/dates";
 import { getFile, parseForm } from "@/lib/form-server";
@@ -54,6 +57,13 @@ export async function submitPaymentProofAction(fd: FormData): Promise<ActionResu
       receiptId,
     },
   });
+  after(() =>
+    notifyOwner({
+      subject: `New payment proof from ${ctx.user.name} (Apt ${ctx.lease!.unit.label})`,
+      lines: [`${ctx.user.name} sent proof of a ${formatMoney(toMinor(p.data.amount), ctx.lease!.currency)} payment (${p.data.method.replace("_", " ").toLowerCase()}).`, "It is waiting for your approval and has not been added to their balance yet."],
+      path: "/admin/finance",
+    }),
+  );
   refresh();
   return { ok: true };
 }

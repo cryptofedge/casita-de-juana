@@ -101,9 +101,10 @@ model Unit {
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
 
-  leases   Lease[]
-  readings MeterReading[]
-  tickets  Ticket[]
+  leases       Lease[]
+  readings     MeterReading[]
+  tickets      Ticket[]
+  utilityBills UtilityBill[]
 }
 
 model Lease {
@@ -122,11 +123,12 @@ model Lease {
   active         Boolean   @default(true)
   createdAt      DateTime  @default(now())
 
-  unit        Unit                @relation(fields: [unitId], references: [id])
-  tenant      User                @relation(fields: [tenantId], references: [id])
-  charges     Charge[]
-  payments    Payment[]
-  submissions PaymentSubmission[]
+  unit           Unit                @relation(fields: [unitId], references: [id])
+  tenant         User                @relation(fields: [tenantId], references: [id])
+  charges        Charge[]
+  payments       Payment[]
+  submissions    PaymentSubmission[]
+  ownEdenorteNic String? // tenant has their own Edenorte contract (NIC)
 
   @@index([unitId, active])
   @@index([tenantId])
@@ -192,6 +194,29 @@ model PaymentSubmission {
 
   @@index([leaseId, status])
   @@index([status])
+}
+
+/**
+ * A bill from Edenorte (the electricity distributor) typed in by the owner (her main account,
+ * unitId = null) or by a tenant who has their own Edenorte contract (unitId = their unit).
+ * Edenorte has no public API, so bills are logged by hand (optionally with a photo/PDF of the bill).
+ */
+model UtilityBill {
+  id        String    @id @default(cuid())
+  unitId    String?
+  period    String // YYYY-MM
+  kwh       Float
+  amount    Int // minor units
+  currency  Currency  @default(DOP)
+  dueDate   DateTime?
+  fileId    String?
+  createdBy String
+  createdAt DateTime  @default(now())
+
+  unit Unit?      @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  file FileAsset? @relation(fields: [fileId], references: [id])
+
+  @@index([unitId, period])
 }
 
 model MeterReading {
@@ -304,11 +329,12 @@ model FileAsset {
   uploadedBy String?
   createdAt  DateTime @default(now())
 
-  payments    Payment[]
-  submissions PaymentSubmission[]
-  readings    MeterReading[]
-  attachments TicketAttachment[]
-  documents   Document[]
+  payments     Payment[]
+  submissions  PaymentSubmission[]
+  readings     MeterReading[]
+  attachments  TicketAttachment[]
+  documents    Document[]
+  utilityBills UtilityBill[]
 }
 
 model Setting {

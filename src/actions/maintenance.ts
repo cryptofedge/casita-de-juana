@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
+import { notifyOwner } from "@/lib/mail";
 import { db } from "@/lib/db";
 import { getFiles, parseForm } from "@/lib/form-server";
 import { getSessionUser } from "@/lib/session";
@@ -28,7 +30,7 @@ async function saveMany(files: File[], userId: string) {
 export async function createTicketAction(fd: FormData): Promise<ActionResult<{ id: string }>> {
   const user = await getSessionUser();
   if (!user || user.role !== "TENANT") return fail("Not authorized.");
-  const lease = await db.lease.findFirst({ where: { tenantId: user.id, active: true } });
+  const lease = await db.lease.findFirst({ where: { tenantId: user.id, active: true }, include: { unit: true } });
   if (!lease) return fail("You do not have an active lease.");
 
   const p = parseForm(ticketSchema, fd);
@@ -50,6 +52,13 @@ export async function createTicketAction(fd: FormData): Promise<ActionResult<{ i
       attachments: { create: files.map((f) => ({ fileId: f.id })) },
     },
   });
+  after(() =>
+    notifyOwner({
+      subject: `New request from ${user.name} (Apt ${lease.unit.label}): ${p.data.title}`,
+      lines: [`${p.data.category.replace("_", " ").toLowerCase()} · priority ${p.data.priority.toLowerCase()}`, p.data.description.slice(0, 400)],
+      path: `/admin/maintenance/${ticket.id}`,
+    }),
+  );
   refresh();
   return { ok: true, data: { id: ticket.id } };
 }
@@ -89,6 +98,15 @@ export async function addMessageAction(fd: FormData): Promise<ActionResult> {
       await tx.ticket.update({ where: { id: ticket.id }, data: { updatedAt: new Date() } });
     }
   });
+  if (user.role === "TENANT") {
+    after(() =>
+      notifyOwner({
+        subject: `New message from ${user.name} on "${ticket.title}"`,
+        lines: [p.data.body.slice(0, 400)],
+        path: `/admin/maintenance/${ticket.id}`,
+      }),
+    );
+  }
   refresh();
   return { ok: true };
 }

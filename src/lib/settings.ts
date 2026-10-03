@@ -9,6 +9,7 @@ export interface AppSettings {
   propertyName: string;
   propertyAddress: string;
   ownerPhone: string;
+  edenorteNic: string;
 }
 
 const DEFAULTS: AppSettings = {
@@ -16,6 +17,7 @@ const DEFAULTS: AppSettings = {
   propertyName: "Casita de Juana",
   propertyAddress: "Ortega, Dominican Republic",
   ownerPhone: "",
+  edenorteNic: "",
 };
 
 export const getSettings = cache(async (): Promise<AppSettings> => {
@@ -27,6 +29,7 @@ export const getSettings = cache(async (): Promise<AppSettings> => {
     propertyName: map.propertyName || DEFAULTS.propertyName,
     propertyAddress: map.propertyAddress || DEFAULTS.propertyAddress,
     ownerPhone: map.ownerPhone ?? DEFAULTS.ownerPhone,
+    edenorteNic: map.edenorteNic ?? DEFAULTS.edenorteNic,
   };
 });
 

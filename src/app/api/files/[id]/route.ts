@@ -34,6 +34,7 @@ export async function GET(req: Request, ctx: RouteContext<"/api/files/[id]">) {
               ]
             : []),
           { attachments: { some: { ticket: { createdById: user.id } } } },
+          { utilityBills: { some: { createdBy: user.id } } },
           {
             documents: {
               some: { OR: [{ tenantId: user.id }, { tenantId: null, type: { not: "ID" } }] },

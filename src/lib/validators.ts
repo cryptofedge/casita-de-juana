@@ -122,6 +122,21 @@ export const rejectSubmissionSchema = z.object({
   reason: optional(300),
 });
 
+export const edenorteBillSchema = z.object({
+  period: periodStr,
+  kwh: decimalStr,
+  amount: money,
+  dueDate: z.union([dateStr, z.literal("")]).optional(),
+});
+
+export const nicSchema = z.object({
+  nic: z
+    .string()
+    .trim()
+    .max(30, "Too long")
+    .regex(/^[A-Za-z0-9\- ]*$/, "Use only letters, numbers and hyphens"),
+});
+
 export const chargeSchema = z.object({
   leaseId: z.string().min(1, "Choose a unit"),
   description: z.string().trim().min(2, "Required").max(120),
