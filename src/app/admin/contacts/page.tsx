@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
 
 export default async function ContactsPage() {
   const { t: tr } = await getI18n();
-  const contacts = await db.contact.findMany({ orderBy: [{ sortOrder: "asc" }, { name: "asc" }] });
+  const contacts = await db.contact.findMany({ where: { tenantId: null }, orderBy: [{ sortOrder: "asc" }, { name: "asc" }] });
   return (
     <>
       <PageHeader

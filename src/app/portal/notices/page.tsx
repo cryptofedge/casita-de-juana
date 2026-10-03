@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Pin } from "lucide-react";
 import { db } from "@/lib/db";
-import { fmtDate } from "@/lib/dates";
+import { fmtDate, todayLocal } from "@/lib/dates";
 import { getI18n } from "@/lib/i18n/server";
 
 import { requireTenant } from "@/lib/session";
@@ -18,7 +18,7 @@ export default async function Notices() {
   await requireTenant();
   const { t, locale } = await getI18n();
   const items = await db.announcement.findMany({
-    where: { OR: [{ expiresAt: null }, { expiresAt: { gte: new Date() } }] },
+    where: { OR: [{ expiresAt: null }, { expiresAt: { gte: todayLocal() } }] },
     orderBy: [{ pinned: "desc" }, { createdAt: "desc" }],
   });
   return (

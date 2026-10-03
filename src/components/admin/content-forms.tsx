@@ -12,7 +12,7 @@ import { SubmitButton } from "@/components/forms/submit-button";
 import { FileField } from "@/components/forms/file-field";
 import { Field, FormError, Input, Select, Textarea } from "@/components/ui/form-controls";
 import { CONTACT_CATEGORY_LABEL, DOC_TYPE_LABEL } from "@/lib/labels";
-import { announcementSchema, contactSchema, documentSchema, settingsSchema } from "@/lib/validators";
+import { announcementSchema, contactSchema, documentSchema, settingsSchema, type ActionResult } from "@/lib/validators";
 import { useT } from "@/lib/i18n/provider";
 
 export function AnnouncementForm() {
@@ -31,7 +31,7 @@ export function AnnouncementForm() {
       <Field label="Message" htmlFor="a-body" error={err("body")}>
         <Textarea id="a-body" rows={5} {...form.register("body")} />
       </Field>
-      <Field label="Hide after (optional)" htmlFor="a-exp" error={err("expiresAt")} hint="The notice disappears from tenant dashboards after this date">
+      <Field label="Hide after (optional)" htmlFor="a-exp" error={err("expiresAt")} hint="The notice stays visible through this date, then disappears from tenant screens">
         <Input id="a-exp" type="date" {...form.register("expiresAt")} />
       </Field>
       <label className="flex items-center gap-3 rounded-lg border bg-secondary/40 p-3 text-sm font-medium">
@@ -77,12 +77,12 @@ export function DocumentForm({ tenants }: { tenants: { id: string; name: string;
   );
 }
 
-export function ContactForm() {
+export function ContactForm({ action = createContactAction }: { action?: (fd: FormData) => Promise<ActionResult> }) {
   const { t } = useT();
   const { form, submit, pending, serverError, err } = useActionForm({
     schema: contactSchema,
     defaultValues: { name: "", role: "", category: "PLUMBER" as const, phone: "", notes: "" },
-    action: createContactAction,
+    action,
   });
   return (
     <form method="post" onSubmit={submit} className="space-y-4" noValidate>

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { parseDateInput } from "@/lib/dates";
 import { getFile, parseForm } from "@/lib/form-server";
-import { assertOwner } from "@/lib/session";
+import { assertOwner, assertTenant } from "@/lib/session";
 import { setSetting } from "@/lib/settings";
 import { saveUpload, UploadError } from "@/lib/storage";
 import {
@@ -93,6 +93,8 @@ export async function deleteDocumentAction(id: string): Promise<ActionResult> {
 }
 
 // ---- Emergency contacts ----------------------------------------------------
+const MAX_OWN_CONTACTS = 10;
+
 export async function createContactAction(fd: FormData): Promise<ActionResult> {
   await assertOwner();
   const p = parseForm(contactSchema, fd);
@@ -100,6 +102,28 @@ export async function createContactAction(fd: FormData): Promise<ActionResult> {
   await db.contact.create({
     data: { ...p.data, role: p.data.role || null, notes: p.data.notes || null },
   });
+  refresh();
+  return { ok: true };
+}
+
+/** Tenant: add a personal emergency contact (family, doctor...). Only that tenant and the owner can see it. */
+export async function createMyContactAction(fd: FormData): Promise<ActionResult> {
+  const ctx = await assertTenant();
+  const p = parseForm(contactSchema, fd);
+  if (!p.ok) return p.result;
+  const count = await db.contact.count({ where: { tenantId: ctx.user.id } });
+  if (count >= MAX_OWN_CONTACTS) return fail(`You can save up to ${MAX_OWN_CONTACTS} personal contacts.`);
+  await db.contact.create({
+    data: { ...p.data, role: p.data.role || null, notes: p.data.notes || null, tenantId: ctx.user.id },
+  });
+  refresh();
+  return { ok: true };
+}
+
+/** Tenant: remove one of their own contacts (never a building one). */
+export async function deleteMyContactAction(id: string): Promise<ActionResult> {
+  const ctx = await assertTenant();
+  await db.contact.deleteMany({ where: { id, tenantId: ctx.user.id } });
   refresh();
   return { ok: true };
 }

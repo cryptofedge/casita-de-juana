@@ -2,7 +2,7 @@ import { getI18n } from "@/lib/i18n/server";
 import type { Metadata } from "next";
 import { Pin, PinOff, Plus, Trash2 } from "lucide-react";
 import { db } from "@/lib/db";
-import { fmtDate } from "@/lib/dates";
+import { fmtDate, todayLocal } from "@/lib/dates";
 import { deleteAnnouncementAction, toggleAnnouncementPinAction } from "@/actions/content";
 import { AnnouncementForm } from "@/components/admin/content-forms";
 import { ActionButton } from "@/components/forms/action-button";
@@ -43,7 +43,7 @@ export default async function AnnouncementsPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="font-display text-lg font-semibold">{a.title}</h3>
                     {a.pinned && <Badge tone="clay">{tr("Pinned")}</Badge>}
-                    {a.expiresAt && a.expiresAt < new Date() && <Badge>{tr("Expired")}</Badge>}
+                    {a.expiresAt && a.expiresAt < todayLocal() && <Badge>{tr("Expired")}</Badge>}
                   </div>
                   <p className="mt-1 whitespace-pre-wrap text-sm">{a.body}</p>
                   <p className="mt-2 text-xs text-muted-foreground">{tr("Posted {date}", { date: fmtDate(a.createdAt, locale) })}{a.expiresAt ? ` · ${tr("hides {date}", { date: fmtDate(a.expiresAt, locale) })}` : ""}</p>

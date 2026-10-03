@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { CheckCircle2, Megaphone, Phone, Pin, PlusCircle, Zap } from "lucide-react";
 import { db } from "@/lib/db";
 import { getLeaseLedger, runBillingThrottled } from "@/lib/billing";
-import { fmtDate } from "@/lib/dates";
+import { fmtDate, todayLocal } from "@/lib/dates";
 import { getI18n } from "@/lib/i18n/server";
 import { chargeLabel } from "@/lib/i18n/charge-label";
 import { PAYMENT_STATUS_LABEL } from "@/lib/labels";
@@ -34,7 +34,7 @@ export default async function PortalHome() {
   const now = new Date();
   const [notices, openTickets] = await Promise.all([
     db.announcement.findMany({
-      where: { OR: [{ expiresAt: null }, { expiresAt: { gte: now } }] },
+      where: { OR: [{ expiresAt: null }, { expiresAt: { gte: todayLocal(now) } }] },
       orderBy: [{ pinned: "desc" }, { createdAt: "desc" }],
       take: 4,
     }),

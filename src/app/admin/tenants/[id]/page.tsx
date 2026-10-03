@@ -45,7 +45,8 @@ export default async function TenantDetail({ params }: PageProps<"/admin/tenants
   const { display, rate } = await getMoneyContext();
   const m = moneyFormatter(display, rate);
   const { ledger, payments } = await getLeaseLedger(lease.id);
-  const [docs, tickets] = await Promise.all([
+  const [theirContacts, docs, tickets] = await Promise.all([
+    db.contact.findMany({ where: { tenantId: tenant.id }, orderBy: { name: "asc" } }),
     db.document.findMany({ where: { tenantId: tenant.id }, include: { file: true }, orderBy: { createdAt: "desc" } }),
     db.ticket.findMany({ where: { createdById: tenant.id }, orderBy: { createdAt: "desc" }, take: 5 }),
   ]);
@@ -185,6 +186,20 @@ export default async function TenantDetail({ params }: PageProps<"/admin/tenants
                   </ActionButton>
                 </>
               )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader><CardTitle>{tr("Personal emergency contacts")}</CardTitle></CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              {theirContacts.length === 0 && <p className="text-muted-foreground">{tr("The tenant has not added any.")}</p>}
+              {theirContacts.map((c) => (
+                <div key={c.id}>
+                  <div className="font-medium">{c.name}{c.role ? ` · ${c.role}` : ""}</div>
+                  <a className="text-primary hover:underline" href={`tel:${c.phone.replace(/[^d+]/g, "")}`}>{c.phone}</a>
+                  {c.notes && <div className="text-xs text-muted-foreground">{c.notes}</div>}
+                </div>
+              ))}
             </CardContent>
           </Card>
 

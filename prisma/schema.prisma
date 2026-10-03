@@ -90,6 +90,7 @@ model User {
   messages      TicketMessage[]
   announcements Announcement[]
   documents     Document[]      @relation("DocumentTenant")
+  contacts      Contact[]       @relation("TenantContacts")
 }
 
 model Unit {
@@ -318,6 +319,10 @@ model Contact {
   phone     String
   notes     String?
   sortOrder Int             @default(0)
+  tenantId  String? // null = building-wide contact set by the owner; otherwise a tenant's own personal contact
+  tenant    User?           @relation("TenantContacts", fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
 }
 
 model FileAsset {
