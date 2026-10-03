@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
-import { createUnitAction, inviteTenantAction, regenerateInviteAction, updateLeaseAction } from "@/actions/tenants";
+import { createUnitAction, inviteTenantAction, regenerateInviteAction, updateDepositAction, updateLeaseAction } from "@/actions/tenants";
 import { useActionForm } from "@/components/forms/use-action-form";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { ActionButton } from "@/components/forms/action-button";
 import { Button } from "@/components/ui/button";
 import { Field, FormError, Input, Select, Textarea } from "@/components/ui/form-controls";
-import { inviteTenantSchema, leaseUpdateSchema, unitSchema } from "@/lib/validators";
+import { depositSchema, inviteTenantSchema, leaseUpdateSchema, unitSchema } from "@/lib/validators";
 import { useT } from "@/lib/i18n/provider";
 
 export function CopyLink({ link, label = "Invitation link" }: { link: string; label?: string }) {
@@ -202,5 +202,25 @@ export function ResetLinkButton({ userId }: { userId: string }) {
       </ActionButton>
       {link && <CopyLink link={link} label="New link" />}
     </div>
+  );
+}
+
+export function DepositForm({ leaseId, deposit, currency }: { leaseId: string; deposit: string; currency: "USD" | "DOP" }) {
+  const { t } = useT();
+  const { form, submit, pending, serverError, err } = useActionForm({
+    schema: depositSchema,
+    defaultValues: { leaseId, deposit },
+    action: updateDepositAction,
+    resetOnSuccess: false,
+  });
+  return (
+    <form method="post" onSubmit={submit} className="space-y-4" noValidate>
+      <FormError message={serverError} />
+      <input type="hidden" {...form.register("leaseId")} />
+      <Field label={t("Security deposit ({cur})", { cur: currency })} htmlFor="dep-amount" error={err("deposit")} hint="The deposit you hold for this tenant. Use 0 if none.">
+        <Input id="dep-amount" inputMode="decimal" {...form.register("deposit")} />
+      </Field>
+      <SubmitButton pending={pending} className="w-full">{t("Save deposit")}</SubmitButton>
+    </form>
   );
 }

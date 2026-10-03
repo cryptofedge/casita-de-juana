@@ -10,6 +10,7 @@ import { parseForm } from "@/lib/form-server";
 import { toMinor } from "@/lib/money";
 import { assertOwner } from "@/lib/session";
 import {
+  depositSchema,
   fail,
   inviteTenantSchema,
   leaseUpdateSchema,
@@ -136,6 +137,19 @@ export async function updateLeaseAction(fd: FormData): Promise<ActionResult> {
     },
   });
   revalidatePath("/admin", "layout");
+  return { ok: true };
+}
+
+/** Owner: set the security deposit held for a lease (any amount, including 0). */
+export async function updateDepositAction(fd: FormData): Promise<ActionResult> {
+  await assertOwner();
+  const p = parseForm(depositSchema, fd);
+  if (!p.ok) return p.result;
+  const lease = await db.lease.findUnique({ where: { id: p.data.leaseId } });
+  if (!lease) return fail("Lease not found.");
+  await db.lease.update({ where: { id: lease.id }, data: { deposit: toMinor(p.data.deposit) } });
+  revalidatePath("/admin", "layout");
+  revalidatePath("/portal", "layout");
   return { ok: true };
 }
 

@@ -16,7 +16,7 @@ import { endLeaseAction as endLease } from "@/actions/tenants";
 import { AdjustBalanceForm, ChargeForm, PaymentForm } from "@/components/admin/finance-forms";
 import { adjustmentBase } from "@/lib/adjust";
 import { todayLocal as todayLocalDate } from "@/lib/dates";
-import { LeaseForm, ResetLinkButton } from "@/components/admin/tenant-forms";
+import { DepositForm, LeaseForm, ResetLinkButton } from "@/components/admin/tenant-forms";
 import { ActionButton } from "@/components/forms/action-button";
 import { FormDialog } from "@/components/forms/form-dialog";
 import { Badge, PaymentStatusBadge, TicketStatusBadge } from "@/components/ui/badge";
@@ -65,6 +65,9 @@ export default async function TenantDetail({ params }: PageProps<"/admin/tenants
             <>
               <FormDialog trigger={<Button><Plus /> {tr("Record payment")}</Button>} title="Record a payment">
                 <PaymentForm leases={opt} defaultLeaseId={lease.id} today={today} charges={ledger.rows.filter((r) => r.remaining > 0).map((r) => ({ id: r.id, label: `${chargeLabel(r, tr, locale)} · ${m(r.remaining, lease.currency)}` }))} />
+              </FormDialog>
+              <FormDialog trigger={<Button variant="outline"><Pencil /> {tr("Deposit")}</Button>} title="Security deposit">
+                <DepositForm leaseId={lease.id} deposit={(lease.deposit / 100).toFixed(2)} currency={lease.currency} />
               </FormDialog>
               <FormDialog trigger={<Button variant="outline"><Plus /> {tr("Add charge")}</Button>} title="Add a one-off charge">
                 <ChargeForm leases={opt} today={today} />

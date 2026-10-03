@@ -95,6 +95,8 @@ export const paymentSchema = z.object({
   note: optional(300),
 });
 
+export const depositSchema = z.object({ leaseId: z.string().min(1), deposit: money });
+
 export const adjustBalanceSchema = z.object({
   leaseId: z.string().min(1),
   balance: money,
