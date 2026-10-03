@@ -1,0 +1,192 @@
+<title>Guía de Casita de Juana</title>
+<style>
+:root {
+  --bg: #faf6ee;
+  --fg: #1d2b30;
+  --muted: #5d6b70;
+  --accent: #1f6f86;
+  --accent-ink: #ffffff;
+  --card: #ffffff;
+  --line: #e4dccb;
+  --note: #fff3d6;
+  --display: "Fraunces", Georgia, serif;
+  --body: "Nunito Sans", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14201f; --fg: #eaf0ee; --muted: #9fb0ac; --accent: #5fb4c9; --accent-ink: #0d1a1c;
+    --card: #1b2b2a; --line: #2c403e; --note: #3a3320; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14201f; --fg: #eaf0ee; --muted: #9fb0ac; --accent: #5fb4c9; --accent-ink: #0d1a1c;
+  --card: #1b2b2a; --line: #2c403e; --note: #3a3320; color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 17px; line-height: 1.6; padding-inline: 16px; padding-block: 24px 64px; }
+main { max-width: 42rem; margin-inline: auto; }
+header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+h1 { font-family: var(--display); font-size: 2rem; line-height: 1.15; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--display); font-size: 1.35rem; margin: 0 0 8px; text-wrap: balance; }
+p { margin: 0 0 10px; }
+.sub { color: var(--muted); margin-bottom: 20px; }
+.lang { display: flex; gap: 4px; }
+.lang button { font: inherit; font-weight: 700; border: 1px solid var(--line); background: var(--card); color: var(--fg); padding: 8px 16px; border-radius: 999px; cursor: pointer; }
+.lang button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.lang button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.open { display: inline-block; background: var(--accent); color: var(--accent-ink); font-weight: 700; padding: 12px 20px; border-radius: 10px; text-decoration: none; margin-bottom: 24px; }
+section { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; margin-bottom: 16px; min-width: 0; }
+ol, ul { margin: 0 0 8px; padding-left: 1.3em; }
+li { margin-bottom: 6px; }
+b { font-weight: 800; }
+.note { background: var(--note); border-radius: 10px; padding: 10px 14px; font-size: 0.95rem; margin-top: 10px; }
+[hidden] { display: none !important; }
+</style>
+
+<main>
+  <header>
+    <h1><span data-l="es">Guía de Casita de Juana</span><span data-l="en" hidden>Casita de Juana Guide</span></h1>
+    <div class="lang" role="group" aria-label="Idioma / Language">
+      <button id="b-es" type="button" aria-pressed="true">Español</button>
+      <button id="b-en" type="button" aria-pressed="false">English</button>
+    </div>
+  </header>
+  <p class="sub"><span data-l="es">Lo que usted hará más seguido, paso a paso. Todo se hace desde el celular o la computadora.</span><span data-l="en" hidden>The things you will do most often, step by step. Everything works from a phone or a computer.</span></p>
+  <a class="open" href="https://casita-de-juana-app.vercel.app/login"><span data-l="es">Abrir el sitio</span><span data-l="en" hidden>Open the site</span></a>
+
+  <section>
+    <h2><span data-l="es">1. Entrar y cambiar el idioma</span><span data-l="en" hidden>1. Signing in and changing language</span></h2>
+    <div data-l="es">
+      <p>Entre con su correo y su contraseña. Arriba a la derecha hay dos botones: <b>ES / EN</b> cambia el idioma y <b>USD / DOP</b> cambia entre dólares y pesos.</p>
+      <p>Para cambiar su contraseña, vaya a <b>Account</b> en el menú.</p>
+    </div>
+    <div data-l="en" hidden>
+      <p>Sign in with your email and password. At the top right, <b>ES / EN</b> changes the language and <b>USD / DOP</b> switches between dollars and pesos.</p>
+      <p>To change your password, open <b>Account</b> in the menu.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span data-l="es">2. Ver qué hay de nuevo</span><span data-l="en" hidden>2. Seeing what is new</span></h2>
+    <div data-l="es">
+      <p>La primera pantalla, <b>Dashboard</b>, tiene la caja <b>What's new / Novedades</b>. Allí aparece lo que sus inquilinos hicieron: solicitudes de mantenimiento, mensajes, comprobantes de pago y facturas de Edenorte. Toque una línea para abrirla. Cuando termine, toque <b>Marcar todo como visto</b>.</p>
+      <p>El sitio no envía correos. Revise el Dashboard de vez en cuando.</p>
+    </div>
+    <div data-l="en" hidden>
+      <p>The first screen, <b>Dashboard</b>, has a <b>What's new</b> box. It lists what tenants did: maintenance requests, messages, payment proofs and Edenorte bills. Tap a line to open it. When you are done, tap <b>Mark all as seen</b>.</p>
+      <p>The site does not send emails. Check the Dashboard from time to time.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span data-l="es">3. Invitar a un inquilino</span><span data-l="en" hidden>3. Inviting a tenant</span></h2>
+    <div data-l="es">
+      <ol>
+        <li>Menú <b>Tenants &amp; Units</b>.</li>
+        <li>Toque <b>Invite a tenant</b> en el apartamento vacío.</li>
+        <li>Escriba nombre, renta mensual, día de pago y fecha de inicio.</li>
+        <li>El sitio crea un enlace. Cópielo y envíelo al inquilino por WhatsApp. Con ese enlace él crea su propia contraseña.</li>
+      </ol>
+    </div>
+    <div data-l="en" hidden>
+      <ol>
+        <li>Open <b>Tenants &amp; Units</b> in the menu.</li>
+        <li>Tap <b>Invite a tenant</b> on the empty apartment.</li>
+        <li>Enter the name, monthly rent, due day and start date.</li>
+        <li>The site makes a link. Copy it and send it to the tenant on WhatsApp. With that link they create their own password.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <h2><span data-l="es">4. Anotar un pago</span><span data-l="en" hidden>4. Recording a payment</span></h2>
+    <div data-l="es">
+      <ol>
+        <li>Menú <b>Tenants &amp; Units</b> y toque el nombre del inquilino.</li>
+        <li>Toque <b>Record payment</b>.</li>
+        <li>Escriba el monto, la fecha y cómo pagó (efectivo, transferencia, Zelle, PayPal).</li>
+        <li>Si quiere que el pago vaya a un cargo en particular, por ejemplo la renta de octubre, elíjalo en <b>Apply to</b>. Si no elige, se aplica al cargo más viejo.</li>
+      </ol>
+      <p>En la misma página ve cada cargo, cada pago y cuánto falta en cada línea.</p>
+    </div>
+    <div data-l="en" hidden>
+      <ol>
+        <li>Open <b>Tenants &amp; Units</b> and tap the tenant's name.</li>
+        <li>Tap <b>Record payment</b>.</li>
+        <li>Enter the amount, the date and how they paid (cash, bank transfer, Zelle, PayPal).</li>
+        <li>To send the payment to one specific charge, such as October rent, pick it in <b>Apply to</b>. If you pick nothing, it goes to the oldest charge.</li>
+      </ol>
+      <p>The same page shows every charge, every payment and what is still owed on each line.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span data-l="es">5. Aprobar el comprobante de un inquilino</span><span data-l="en" hidden>5. Approving a tenant's payment proof</span></h2>
+    <div data-l="es">
+      <p>Los inquilinos pueden subir una foto o captura de su pago. Eso <b>no</b> cambia su saldo hasta que usted lo apruebe.</p>
+      <ol>
+        <li>En el Dashboard aparece un aviso amarillo. Toque <b>Review</b>.</li>
+        <li>Mire la foto. Corrija el monto, la fecha o el cargo si hace falta.</li>
+        <li>Toque aprobar para que se anote el pago, o rechazar si no es correcto.</li>
+      </ol>
+    </div>
+    <div data-l="en" hidden>
+      <p>Tenants can upload a photo or screenshot of their payment. It does <b>not</b> change their balance until you approve it.</p>
+      <ol>
+        <li>A yellow notice appears on the Dashboard. Tap <b>Review</b>.</li>
+        <li>Look at the photo. Fix the amount, date or charge if needed.</li>
+        <li>Tap approve to post the payment, or reject if it is not right.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <h2><span data-l="es">6. Ajustar un saldo</span><span data-l="en" hidden>6. Adjusting a balance</span></h2>
+    <div data-l="es">
+      <p>Si el saldo de un inquilino no coincide con sus cuentas, abra su página y toque <b>Adjust balance</b>. Escriba el total que debe y cuánto de eso está vencido. El sitio crea las líneas necesarias, y usted puede subir o bajar el saldo.</p>
+    </div>
+    <div data-l="en" hidden>
+      <p>If a tenant's balance does not match your records, open their page and tap <b>Adjust balance</b>. Enter the total they owe and how much of it is overdue. The site makes the needed lines, and you can raise or lower the balance.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span data-l="es">7. Luz, Edenorte, mantenimiento y avisos</span><span data-l="en" hidden>7. Electricity, Edenorte, maintenance and notices</span></h2>
+    <div data-l="es">
+      <ul>
+        <li><b>Electricity</b>: anote la lectura del contador de cada apartamento, con foto. El sitio calcula el cobro.</li>
+        <li><b>Edenorte</b>: guarde su número de cliente y anote cada mes la factura (kWh y monto). Verá gráficas del consumo. El sitio nunca guarda su contraseña de Edenorte.</li>
+        <li><b>Edenorte de un inquilino</b>: solo usted decide. En la página del inquilino, en <b>Own Edenorte account</b>, toque <b>Allow</b> si él tiene su propio contrato. Sin eso, él no ve esa opción.</li>
+        <li><b>Maintenance</b>: aquí llegan las solicitudes. Cambie el estado (abierto, en proceso, resuelto) y responda en el mismo hilo.</li>
+        <li><b>Notice Board</b>: escriba un aviso y todos los inquilinos lo ven. <b>Document Vault</b> guarda contratos y reglas. <b>Emergency Contacts</b> guarda plomero, electricista y otros.</li>
+      </ul>
+    </div>
+    <div data-l="en" hidden>
+      <ul>
+        <li><b>Electricity</b>: enter each apartment's meter reading, with a photo. The site works out the charge.</li>
+        <li><b>Edenorte</b>: save your customer number and log each month's bill (kWh and amount). You get usage charts. The site never stores your Edenorte password.</li>
+        <li><b>A tenant's own Edenorte</b>: only you decide. On the tenant's page, under <b>Own Edenorte account</b>, tap <b>Allow</b> if they have their own contract. Without that, they do not see the option.</li>
+        <li><b>Maintenance</b>: requests arrive here. Change the status (open, in progress, resolved) and reply in the same thread.</li>
+        <li><b>Notice Board</b>: write a notice and every tenant sees it. <b>Document Vault</b> keeps contracts and rules. <b>Emergency Contacts</b> keeps the plumber, electrician and others.</li>
+      </ul>
+    </div>
+    <p class="note"><span data-l="es">Si algo no funciona o no entiende una pantalla, mande una captura por WhatsApp a quien configuró el sitio.</span><span data-l="en" hidden>If something does not work or a screen is unclear, send a screenshot on WhatsApp to whoever set up the site.</span></p>
+  </section>
+</main>
+
+<script>
+(function () {
+  var es = document.getElementById("b-es"), en = document.getElementById("b-en");
+  function set(lang) {
+    document.documentElement.lang = lang;
+    document.querySelectorAll("[data-l]").forEach(function (el) { el.hidden = el.getAttribute("data-l") !== lang; });
+    es.setAttribute("aria-pressed", String(lang === "es"));
+    en.setAttribute("aria-pressed", String(lang === "en"));
+    try { localStorage.setItem("guide-lang", lang); } catch (e) {}
+  }
+  es.addEventListener("click", function () { set("es"); });
+  en.addEventListener("click", function () { set("en"); });
+  var saved = null;
+  try { saved = localStorage.getItem("guide-lang"); } catch (e) {}
+  if (saved === "en") set("en");
+})();
+</script>
