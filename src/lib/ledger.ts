@@ -16,6 +16,8 @@ export interface LedgerPayment {
   id: string;
   amount: number;
   paidAt: Date;
+  /** If set, the payment is applied to this charge first; any excess falls back to oldest-first. */
+  chargeId?: string | null;
 }
 
 export interface LedgerRow extends LedgerCharge {
@@ -57,13 +59,31 @@ export function buildLedger(
       (a.createdAt?.getTime() ?? 0) - (b.createdAt?.getTime() ?? 0),
   );
   const totalPaid = payments.reduce((s, p) => s + p.amount, 0);
-  let pool = totalPaid;
+
+  // Payments aimed at a specific charge are applied there first (up to what it still needs);
+  // everything else - and any excess - joins the oldest-first pool.
+  const byId = new Map(sorted.map((c) => [c.id, c]));
+  const directed = new Map<string, number>();
+  let pool = 0;
+  for (const p of payments) {
+    const target = p.chargeId ? byId.get(p.chargeId) : undefined;
+    if (target && target.amount > 0) {
+      const room = target.amount - (directed.get(target.id) ?? 0);
+      const use = Math.max(0, Math.min(p.amount, room));
+      directed.set(target.id, (directed.get(target.id) ?? 0) + use);
+      pool += p.amount - use;
+    } else {
+      pool += p.amount;
+    }
+  }
   let overdue = 0;
   let dueNow = 0;
 
   const rows: LedgerRow[] = sorted.map((c) => {
-    const paid = Math.min(pool, c.amount);
-    pool -= paid;
+    const direct = directed.get(c.id) ?? 0;
+    const fifo = Math.min(pool, c.amount - direct);
+    pool -= fifo;
+    const paid = direct + fifo;
     const remaining = c.amount - paid;
     const grace = c.type === "RENT" ? graceDays : 0;
     const pastDue = today.getTime() > addDays(c.dueDate, grace).getTime();

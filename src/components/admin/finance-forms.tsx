@@ -18,7 +18,12 @@ export interface LeaseOption {
   currency: "USD" | "DOP";
 }
 
-export function PaymentForm({ leases, defaultLeaseId, today }: { leases: LeaseOption[]; defaultLeaseId?: string; today: string }) {
+export interface ChargeOption {
+  id: string;
+  label: string;
+}
+
+export function PaymentForm({ leases, defaultLeaseId, today, charges }: { leases: LeaseOption[]; defaultLeaseId?: string; today: string; charges?: ChargeOption[] }) {
   const { t } = useT();
   const { form, submit, pending, serverError, err, setFiles, fileKey } = useActionForm({
     schema: paymentSchema,
@@ -27,6 +32,7 @@ export function PaymentForm({ leases, defaultLeaseId, today }: { leases: LeaseOp
       amount: "",
       method: "CASH" as const,
       paidAt: today,
+      chargeId: "",
       reference: "",
       note: "",
     },
@@ -55,6 +61,16 @@ export function PaymentForm({ leases, defaultLeaseId, today }: { leases: LeaseOp
           <Input id="paidAt" type="date" {...form.register("paidAt")} />
         </Field>
       </div>
+      {charges && charges.length > 0 && (
+        <Field label="Apply to" htmlFor="chargeId" error={err("chargeId")} hint="Choose which charge this payment is for. Leave on automatic to pay the oldest charge first.">
+          <Select id="chargeId" {...form.register("chargeId")}>
+            <option value="">{t("Oldest charge first (automatic)")}</option>
+            {charges.map((c) => (
+              <option key={c.id} value={c.id}>{c.label}</option>
+            ))}
+          </Select>
+        </Field>
+      )}
       <Field label="Method" htmlFor="method" error={err("method")}>
         <Select id="method" {...form.register("method")}>
           {Object.entries(PAYMENT_METHOD_LABEL).map(([v, l]) => (

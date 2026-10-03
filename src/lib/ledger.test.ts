@@ -75,3 +75,23 @@ describe("computeLateFee", () => {
     expect(computeLateFee(200_00, 0, 0)).toBe(0);
   });
 });
+
+describe("payments aimed at a specific charge", () => {
+  const prev: LedgerCharge = { id: "prev", type: "OTHER", period: "2026-09", description: "Previous months balance", amount: 1240_00, dueDate: d("2026-09-01") };
+  const oct = rent("2026-10", 350_00);
+  it("applies the payment to the chosen charge, not the oldest", () => {
+    const l = buildLedger([prev, oct], [{ id: "p", amount: 290_00, paidAt: d("2026-10-02"), chargeId: "r-2026-10" }], d("2026-10-02"), 0);
+    const byId = Object.fromEntries(l.rows.map((r) => [r.id, r]));
+    expect(byId["r-2026-10"].paid).toBe(290_00);
+    expect(byId["r-2026-10"].remaining).toBe(60_00);
+    expect(byId["prev"].paid).toBe(0);
+    expect(l.balance).toBe(1300_00);
+    expect(l.overdue).toBe(1300_00);
+  });
+  it("sends any excess of a directed payment to the oldest charge", () => {
+    const l = buildLedger([prev, oct], [{ id: "p", amount: 400_00, paidAt: d("2026-10-02"), chargeId: "r-2026-10" }], d("2026-10-02"), 0);
+    const byId = Object.fromEntries(l.rows.map((r) => [r.id, r]));
+    expect(byId["r-2026-10"].paid).toBe(350_00);
+    expect(byId["prev"].paid).toBe(50_00);
+  });
+});

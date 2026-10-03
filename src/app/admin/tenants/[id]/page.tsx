@@ -62,7 +62,7 @@ export default async function TenantDetail({ params }: PageProps<"/admin/tenants
           lease.active ? (
             <>
               <FormDialog trigger={<Button><Plus /> {tr("Record payment")}</Button>} title="Record a payment">
-                <PaymentForm leases={opt} defaultLeaseId={lease.id} today={today} />
+                <PaymentForm leases={opt} defaultLeaseId={lease.id} today={today} charges={ledger.rows.filter((r) => r.remaining > 0).map((r) => ({ id: r.id, label: `${chargeLabel(r, tr, locale)} · ${m(r.remaining, lease.currency)}` }))} />
               </FormDialog>
               <FormDialog trigger={<Button variant="outline"><Plus /> {tr("Add charge")}</Button>} title="Add a one-off charge">
                 <ChargeForm leases={opt} today={today} />

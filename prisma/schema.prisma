@@ -151,6 +151,7 @@ model Payment {
   reference  String?
   note       String?
   receiptId  String?
+  chargeId   String?        // optional: apply this payment to one specific charge first
   recordedBy String?
   createdAt  DateTime      @default(now())
 

@@ -90,6 +90,7 @@ export const paymentSchema = z.object({
   amount: moneyPositive,
   method: z.enum(["CASH", "BANK_TRANSFER", "PAYPAL", "STRIPE"]),
   paidAt: dateStr,
+  chargeId: z.string().optional(),
   reference: optional(120),
   note: optional(300),
 });

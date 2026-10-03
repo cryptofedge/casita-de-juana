@@ -35,9 +35,17 @@ export async function recordPaymentAction(fd: FormData): Promise<ActionResult> {
     throw e;
   }
 
+  let chargeId: string | null = null;
+  if (d.chargeId) {
+    const target = await db.charge.findFirst({ where: { id: d.chargeId, leaseId: d.leaseId }, select: { id: true } });
+    if (!target) return fail("Charge not found.");
+    chargeId = target.id;
+  }
+
   await db.payment.create({
     data: {
       leaseId: d.leaseId,
+      chargeId,
       amount: toMinor(d.amount), // entered in the lease currency
       method: d.method,
       paidAt: parseDateInput(d.paidAt),
