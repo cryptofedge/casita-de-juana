@@ -103,7 +103,7 @@ export function ContactForm({ action = createContactAction }: { action?: (fd: Fo
   );
 }
 
-export function SettingsForm({ defaults }: { defaults: { usdDopRate: string; propertyName: string; propertyAddress: string; ownerPhone: string } }) {
+export function SettingsForm({ defaults, rateNote }: { defaults: { usdDopRate: string; rateAuto: boolean; propertyName: string; propertyAddress: string; ownerPhone: string }; rateNote?: string }) {
   const { t } = useT();
   const [saved, setSaved] = useState(false);
   const { form, submit, pending, serverError, err } = useActionForm({
@@ -122,6 +122,13 @@ export function SettingsForm({ defaults }: { defaults: { usdDopRate: string; pro
       <Field label="Exchange rate: DOP per 1 USD" htmlFor="s-rate" error={err("usdDopRate")} hint="Used for the USD / DOP display toggle and consolidated totals. Lease and bill amounts stay in their own currency.">
         <Input id="s-rate" inputMode="decimal" {...form.register("usdDopRate")} />
       </Field>
+      <label className="flex items-start gap-2 text-sm">
+        <input type="checkbox" className="mt-1 size-4" {...form.register("rateAuto")} />
+        <span>
+          <span className="font-medium">{t("Update the rate automatically every day")}</span>
+          {rateNote && <span className="block text-xs text-muted-foreground">{rateNote}</span>}
+        </span>
+      </label>
       <div className="flex items-center gap-3">
         <SubmitButton pending={pending}>{t("Save settings")}</SubmitButton>
         {saved && <span role="status" className="text-sm font-medium text-success">{t("Saved ✓")}</span>}

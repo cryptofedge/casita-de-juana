@@ -10,6 +10,9 @@ export interface AppSettings {
   propertyAddress: string;
   ownerPhone: string;
   edenorteNic: string;
+  /** "on" (default) = the rate is refreshed from the market every day; "off" = owner types it */
+  rateAuto: string;
+  rateUpdatedAt: string;
 }
 
 const DEFAULTS: AppSettings = {
@@ -18,6 +21,8 @@ const DEFAULTS: AppSettings = {
   propertyAddress: "Ortega, Dominican Republic",
   ownerPhone: "",
   edenorteNic: "",
+  rateAuto: "on",
+  rateUpdatedAt: "",
 };
 
 export const getSettings = cache(async (): Promise<AppSettings> => {
@@ -30,6 +35,8 @@ export const getSettings = cache(async (): Promise<AppSettings> => {
     propertyAddress: map.propertyAddress || DEFAULTS.propertyAddress,
     ownerPhone: map.ownerPhone ?? DEFAULTS.ownerPhone,
     edenorteNic: map.edenorteNic ?? DEFAULTS.edenorteNic,
+    rateAuto: map.rateAuto === "off" ? "off" : "on",
+    rateUpdatedAt: map.rateUpdatedAt ?? "",
   };
 });
 

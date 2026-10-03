@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { parseDateInput } from "@/lib/dates";
 import { getFile, parseForm } from "@/lib/form-server";
 import { assertOwner, assertTenant } from "@/lib/session";
+import { refreshUsdDopRate } from "@/lib/rate";
 import { setSetting } from "@/lib/settings";
 import { saveUpload, UploadError } from "@/lib/storage";
 import {
@@ -136,13 +137,27 @@ export async function deleteContactAction(id: string): Promise<ActionResult> {
 }
 
 // ---- Settings --------------------------------------------------------------
+/** Owner: fetch today's market rate right now. */
+export async function refreshRateNowAction(): Promise<ActionResult> {
+  await assertOwner();
+  try {
+    await refreshUsdDopRate();
+  } catch {
+    return fail("Could not reach the exchange-rate service. Try again later.");
+  }
+  refresh();
+  return { ok: true };
+}
+
 export async function saveSettingsAction(fd: FormData): Promise<ActionResult> {
   await assertOwner();
-  const p = parseForm(settingsSchema, fd);
+  const p = parseForm(settingsSchema, fd, { booleans: ["rateAuto"] });
   if (!p.ok) return p.result;
-  await Promise.all(
-    (Object.keys(p.data) as (keyof typeof p.data)[]).map((k) => setSetting(k, String(p.data[k]))),
-  );
+  const { rateAuto, ...rest } = p.data;
+  await Promise.all([
+    ...(Object.keys(rest) as (keyof typeof rest)[]).map((k) => setSetting(k, String(rest[k]))),
+    setSetting("rateAuto", rateAuto ? "on" : "off"),
+  ]);
   refresh();
   return { ok: true, message: "Settings saved" };
 }

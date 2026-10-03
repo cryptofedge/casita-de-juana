@@ -211,6 +211,7 @@ export const contactSchema = z.object({
 
 export const settingsSchema = z.object({
   usdDopRate: decimalStr.refine((v) => parseFloat(v) > 0, "Must be greater than 0"),
+  rateAuto: z.boolean(),
   propertyName: z.string().trim().min(2).max(100),
   propertyAddress: z.string().trim().max(200),
   ownerPhone: z.string().trim().max(40),
