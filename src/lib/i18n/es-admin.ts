@@ -356,6 +356,7 @@ const admin: Record<string, string> = {
   "Sent to: {emails}": "Se envían a: {emails}",
 
   "What's new": "Novedades",
+  "Nothing new. Tenant requests, messages, payment proofs and bills will show up here.": "Nada nuevo. Las solicitudes, mensajes, comprobantes de pago y facturas de los inquilinos aparecerán aquí.",
   "Mark all as seen": "Marcar todo como visto",
   "sent a maintenance request: {title}": "envió una solicitud de mantenimiento: {title}",
   "replied on: {title}": "respondió en: {title}",
