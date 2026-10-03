@@ -92,9 +92,8 @@ remembered in a cookie; first visit follows the browser (`Accept-Language`). The
 ### Payment proof from tenants
 Tenants can tap **I made a payment** on the Rent page and upload a screenshot or receipt (amount, date, method incl. **Zelle**). It shows as *Waiting for approval* and does **not** change their balance. The owner sees a banner on the dashboard and a queue on **Rent & Payments**: **Approve** (can correct amount/method/date and pick which charge it pays) posts a real payment with the screenshot attached; **Reject** sends it back with an optional reason. A tenant can have at most 3 submissions waiting.
 
-### Email alerts and Edenorte
-- **Owner email alerts** (new payment proof, new maintenance request, tenant message, tenant Edenorte bill): set `RESEND_API_KEY` (and ideally a verified `MAIL_FROM` domain); Settings shows whether alerts are on.
-- **Edenorte** (`/admin/edenorte`): Edenorte offers no public connection to read an account, so the owner saves her NIC, opens the official Oficina Virtual in one tap, and **logs each monthly bill** (kWh, amount, optional photo). The page charts usage and compares the main bill with the unit sub-meters. Tenants see a usage chart on the Power tab, and a tenant who has their **own** Edenorte contract can save their NIC and log their bills; the owner can see them. No Edenorte password is ever stored.
+### Edenorte
+- **Edenorte** (`/admin/edenorte`): Edenorte offers no public connection to read an account, so the owner saves her NIC, opens the official Oficina Virtual in one tap, and **logs each monthly bill** (kWh, amount, optional photo). The page charts usage and compares the main bill with the unit sub-meters. Tenants see a usage chart on the Power tab, and a tenant who has their **own** Edenorte contract can, once the owner switches it on for them, save their NIC and log their bills; the owner can see them. No Edenorte password is ever stored.
 
 ### Money & billing rules
 - Amounts are stored in **minor units** (cents) in each lease's currency (USD or DOP). The header toggle shows

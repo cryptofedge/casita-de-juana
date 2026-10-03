@@ -1,11 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { after } from "next/server";
 import { db } from "@/lib/db";
 import { parseDateInput } from "@/lib/dates";
 import { getFile, parseForm } from "@/lib/form-server";
-import { notifyOwner } from "@/lib/mail";
 import { toMinor } from "@/lib/money";
 import { assertOwner, assertTenant, getSessionUser } from "@/lib/session";
 import { setSetting } from "@/lib/settings";
@@ -91,13 +89,6 @@ export async function addTenantBillAction(fd: FormData): Promise<ActionResult> {
   if (!ctx.lease.edenorteAccess) return fail("The owner has not turned this on for your account.");
   const res = await saveBill(fd, ctx.lease.unitId, ctx.user.id);
   if (res.ok) {
-    after(() =>
-      notifyOwner({
-        subject: `${ctx.user.name} (Apt ${ctx.lease!.unit.label}) logged an Edenorte bill`,
-        lines: ["They have their own Edenorte account and added a monthly bill for tracking."],
-        path: "/admin/edenorte",
-      }),
-    );
   }
   return res;
 }
