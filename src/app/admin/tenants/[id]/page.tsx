@@ -6,11 +6,12 @@ import { db } from "@/lib/db";
 import { getLeaseLedger } from "@/lib/billing";
 import { fmtDate, toDateInput, todayLocal } from "@/lib/dates";
 import { chargeLabel } from "@/lib/i18n/charge-label";
-import { CHARGE_TYPE_LABEL, DOC_TYPE_LABEL, PAYMENT_METHOD_LABEL } from "@/lib/labels";
+import { CHARGE_TYPE_LABEL, DOC_TYPE_LABEL } from "@/lib/labels";
 import { moneyFormatter } from "@/lib/money";
 import { getMoneyContext } from "@/lib/settings";
 import { deleteChargeAction, deletePaymentAction } from "@/actions/finance";
 import { setEdenorteAccessAction } from "@/actions/edenorte";
+import { PaymentMethodSelect } from "@/components/admin/payment-method-select";
 import { endLeaseAction as endLease } from "@/actions/tenants";
 import { AdjustBalanceForm, ChargeForm, PaymentForm } from "@/components/admin/finance-forms";
 import { adjustmentBase } from "@/lib/adjust";
@@ -131,7 +132,7 @@ export default async function TenantDetail({ params }: PageProps<"/admin/tenants
                   {payments.map((p) => (
                     <tr key={p.id}>
                       <Td>{fmtDate(p.paidAt, locale)}</Td>
-                      <Td>{tr(PAYMENT_METHOD_LABEL[p.method])}{p.reference ? <span className="block text-xs text-muted-foreground">{p.reference}</span> : null}{p.note ? <span className="block text-xs text-muted-foreground">{p.note}</span> : null}</Td>
+                      <Td><PaymentMethodSelect paymentId={p.id} method={p.method} />{p.reference ? <span className="block text-xs text-muted-foreground">{p.reference}</span> : null}{p.note ? <span className="block text-xs text-muted-foreground">{p.note}</span> : null}</Td>
                       <Td className="text-right font-semibold tabular-nums">{m(p.amount, lease.currency)}</Td>
                       <Td>{p.receipt ? <FileLink id={p.receipt.id} name={p.receipt.filename} mime={p.receipt.mime} label={tr("View")} /> : "-"}</Td>
                       <Td className="text-right"><ActionButton size="sm" variant="ghost" aria-label={tr("Delete payment")} confirm={tr("Delete this payment?")} action={deletePaymentAction.bind(null, p.id)}><Trash2 /></ActionButton></Td>

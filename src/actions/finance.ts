@@ -11,6 +11,8 @@ import { saveUpload, UploadError } from "@/lib/storage";
 import { adjKeys, solveAdjustment } from "@/lib/adjust";
 import { addDays, periodOf, todayLocal } from "@/lib/dates";
 import { ADJ_PREFIX } from "@/lib/adjust";
+import { PAYMENT_METHOD_LABEL } from "@/lib/labels";
+import type { PaymentMethod } from "@prisma/client";
 import { adjustBalanceSchema, chargeSchema, fail, paymentSchema, type ActionResult } from "@/lib/validators";
 
 function refresh() {
@@ -62,6 +64,15 @@ export async function recordPaymentAction(fd: FormData): Promise<ActionResult> {
 export async function deletePaymentAction(paymentId: string): Promise<ActionResult> {
   await assertOwner();
   await db.payment.delete({ where: { id: paymentId } }).catch(() => null);
+  refresh();
+  return { ok: true };
+}
+
+/** Owner: correct the method of a recorded payment (the amount and what it pays are untouched). */
+export async function updatePaymentMethodAction(paymentId: string, method: string): Promise<ActionResult> {
+  await assertOwner();
+  if (!Object.keys(PAYMENT_METHOD_LABEL).includes(method)) return fail("Choose a valid payment method.");
+  await db.payment.update({ where: { id: paymentId }, data: { method: method as PaymentMethod } }).catch(() => null);
   refresh();
   return { ok: true };
 }

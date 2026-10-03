@@ -372,6 +372,7 @@ const admin: Record<string, string> = {
   "Only you can allow a tenant to add their own Edenorte account. Turn it on for the tenants who have their own contract.": "Solo usted puede permitir que un inquilino agregue su propia cuenta de Edenorte. Actívelo para los inquilinos que tienen su propio contrato.",
   "No active tenants yet.": "Todavía no hay inquilinos activos.",
   "Allowed. They have not added their number yet.": "Permitido. Aún no han agregado su número.",
+  "Choose a valid payment method.": "Elija un método de pago válido.",
   "Not allowed": "No permitido",
   "Allow": "Permitir",
   "No tenant has added their own Edenorte account. You choose who may, on each tenant's page.": "Ningún inquilino ha agregado su propia cuenta de Edenorte. Usted decide quién puede, en la página de cada inquilino.",
