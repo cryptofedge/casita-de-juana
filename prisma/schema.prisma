@@ -189,6 +189,7 @@ model PaymentSubmission {
   rejectReason String?
   reviewedAt   DateTime?
   paymentId    String? // the Payment created on approval
+  applyTo      String           @default("BALANCE") // tenant's wish: BALANCE (oldest first) or OVERDUE (overdue rent)
   createdAt    DateTime         @default(now())
 
   lease   Lease     @relation(fields: [leaseId], references: [id], onDelete: Cascade)

@@ -12,15 +12,17 @@ export function ApproveSubmissionForm({
   submission,
   charges,
   currency,
+  defaultChargeId = "",
 }: {
   submission: { id: string; amount: string; method: "CASH" | "BANK_TRANSFER" | "ZELLE" | "PAYPAL" | "STRIPE"; paidAt: string };
   charges: { id: string; label: string }[];
   currency: "USD" | "DOP";
+  defaultChargeId?: string;
 }) {
   const { t } = useT();
   const { form, submit, pending, serverError, err } = useActionForm({
     schema: approveSubmissionSchema,
-    defaultValues: { submissionId: submission.id, amount: submission.amount, method: submission.method, paidAt: submission.paidAt, chargeId: "" },
+    defaultValues: { submissionId: submission.id, amount: submission.amount, method: submission.method, paidAt: submission.paidAt, chargeId: defaultChargeId },
     action: approveSubmissionAction,
     resetOnSuccess: false,
   });

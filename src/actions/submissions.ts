@@ -48,6 +48,7 @@ export async function submitPaymentProofAction(fd: FormData): Promise<ActionResu
       leaseId: ctx.lease.id, // always the signed-in tenant's own lease, never from the form
       amount: toMinor(p.data.amount),
       method: p.data.method,
+      applyTo: p.data.applyTo,
       paidAt: parseDateInput(p.data.paidAt),
       reference: p.data.reference || null,
       note: p.data.note || null,

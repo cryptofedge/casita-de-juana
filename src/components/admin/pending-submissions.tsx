@@ -39,6 +39,9 @@ export async function PendingSubmissions() {
           const charges = ledger.rows
             .filter((r) => r.remaining > 0)
             .map((r) => ({ id: r.id, label: `${chargeLabel(r, tr, locale)} · ${m(r.remaining, s.lease.currency)}` }));
+          // The tenant said where the money should go; overdue rent preselects the oldest overdue rent line.
+          const overdueRent = ledger.rows.find((r) => r.type === "RENT" && r.status === "OVERDUE");
+          const defaultChargeId = s.applyTo === "OVERDUE" && overdueRent ? overdueRent.id : "";
           const isImg = s.receipt.mime.startsWith("image/") && s.receipt.mime !== "image/heic";
           return (
             <Card key={s.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
@@ -58,6 +61,7 @@ export async function PendingSubmissions() {
                   {tr(PAYMENT_METHOD_LABEL[s.method])} · {tr("Paid on {date}", { date: fmtDate(s.paidAt, locale) })}
                   {s.reference ? ` · ${s.reference}` : ""}
                 </div>
+                <div className="text-sm">{tr("Tenant wants it applied to:")} <b>{s.applyTo === "OVERDUE" ? tr("My overdue rent") : tr("My total balance (oldest charge first)")}</b></div>
                 {s.note && <div className="text-sm">{s.note}</div>}
                 <div className="text-xs text-muted-foreground">{tr("Submitted {date}", { date: fmtDate(s.createdAt, locale) })}</div>
               </div>
@@ -66,6 +70,7 @@ export async function PendingSubmissions() {
                   <ApproveSubmissionForm
                     currency={s.lease.currency}
                     charges={charges}
+                    defaultChargeId={defaultChargeId}
                     submission={{ id: s.id, amount: (s.amount / 100).toFixed(2), method: s.method, paidAt: toDateInput(s.paidAt) }}
                   />
                 </FormDialog>

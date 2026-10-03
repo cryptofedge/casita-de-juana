@@ -13,7 +13,7 @@ export function SubmitProofForm({ currency, today }: { currency: "USD" | "DOP"; 
   const { t } = useT();
   const { form, submit, pending, serverError, err, setFiles, fileKey } = useActionForm({
     schema: submissionSchema,
-    defaultValues: { amount: "", method: "ZELLE" as const, paidAt: today, reference: "", note: "" },
+    defaultValues: { amount: "", method: "ZELLE" as const, paidAt: today, applyTo: "BALANCE" as const, reference: "", note: "" },
     action: submitPaymentProofAction,
   });
   return (
@@ -32,6 +32,12 @@ export function SubmitProofForm({ currency, today }: { currency: "USD" | "DOP"; 
           {Object.entries(PAYMENT_METHOD_LABEL).map(([v, l]) => (
             <option key={v} value={v}>{t(l)}</option>
           ))}
+        </Select>
+      </Field>
+      <Field label="Where should this payment go?" htmlFor="sp-apply" error={err("applyTo")} hint="The owner reviews it and makes the final choice.">
+        <Select id="sp-apply" {...form.register("applyTo")}>
+          <option value="BALANCE">{t("My total balance (oldest charge first)")}</option>
+          <option value="OVERDUE">{t("My overdue rent")}</option>
         </Select>
       </Field>
       <FileField key={fileKey} label="Screenshot or receipt" name="receipt" onFiles={setFiles} capture error={err("receipt" as never)} />

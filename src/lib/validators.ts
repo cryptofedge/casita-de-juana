@@ -107,6 +107,7 @@ export const submissionSchema = z.object({
   amount: moneyPositive,
   method: z.enum(["CASH", "BANK_TRANSFER", "ZELLE", "PAYPAL", "STRIPE"]),
   paidAt: dateStr,
+  applyTo: z.enum(["BALANCE", "OVERDUE"]),
   reference: optional(120),
   note: optional(300),
 });
