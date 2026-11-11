@@ -139,32 +139,37 @@ src/
 public/brand/          logo + app icons
 ```
 
-## Deploy for free on Render (+ Neon)
+## Deploy for free on Netlify (+ Neon)
 
-`render.yaml` describes the web service, and `.github/workflows/daily-billing.yml` runs the daily billing job (Render's
-free plan has no cron jobs). The build runs `scripts/deploy-build.mjs`, which creates/updates the tables, creates the
-owner login if needed, and builds. Uploads are stored in the database, so no disk or S3 is needed.
+`netlify.toml` sets the build (`scripts/deploy-build.mjs`: creates/updates the tables, creates the owner login if
+needed, builds); Netlify's Next.js adapter is applied automatically. `.github/workflows/daily-billing.yml` runs the daily
+billing job. Uploads are stored in the database, so no disk or S3 is needed.
 
 1. **Database connection strings**: open the Neon project (from Vercel: *Storage* → the Neon database → *Open in Neon*),
    click **Connect** and copy two strings: the **pooled** one (its host contains `-pooler`) and the **direct** one
    (connection pooling turned off).
-2. **Render** (free): at https://render.com sign up with GitHub → **New → Blueprint** → choose this repository (branch
-   `master`). Paste the pooled string into `DATABASE_URL` and the direct one into `DATABASE_URL_UNPOOLED`. Render
-   generates `AUTH_SECRET` and `CRON_SECRET` itself. Click **Deploy Blueprint**; the first build takes a few minutes.
-3. Open the `*.onrender.com` link Render shows and sign in with the existing accounts (everyone is signed out once,
-   because `AUTH_SECRET` is new).
-4. **Daily billing**: copy `CRON_SECRET` from Render (the service → *Environment*). In GitHub → this repository →
-   *Settings → Secrets and variables → Actions*, add a **secret** `CRON_SECRET` with that value. If the link is not
-   `https://casita-de-juana.onrender.com`, also add a **variable** `APP_URL` with the real link. Test it with
+2. **Netlify** (free): at https://app.netlify.com sign in with GitHub → **Add new project → Import an existing
+   project → GitHub** → this repository (branch `master`). The build settings come from `netlify.toml`.
+3. **Environment variables** (*Project configuration → Environment variables*, all scopes and contexts):
+   | Name | Value |
+   |---|---|
+   | `DATABASE_URL` | Neon **pooled** connection string |
+   | `DATABASE_URL_UNPOOLED` | Neon **direct** connection string (used for schema updates) |
+   | `AUTH_SECRET` | a long random string (`npx auth secret`) |
+   | `CRON_SECRET` | another long random string |
+   | `APP_URL` | the site's address, e.g. `https://casita-de-juana.netlify.app` (invite links, link previews) |
+   | `SETUP_CODE` | *optional*: only while the real owner has not claimed the site yet |
+4. **Deploy** (*Deploys → Trigger deploy*), open the `*.netlify.app` link and sign in with the existing accounts
+   (everyone is signed out once if `AUTH_SECRET` is new).
+5. **Daily billing**: in GitHub → this repository → *Settings → Secrets and variables → Actions*, add the **secret**
+   `CRON_SECRET` (same value as on Netlify) and the **variable** `APP_URL` (the site's address). Test it with
    *Actions → Daily billing → Run workflow*.
-5. Optional: `SETUP_CODE` (only while the real owner has not claimed the site yet), and a custom domain (Render →
-   *Settings → Custom Domains*, then set `APP_URL` to it).
 
-Free-plan notes: the service sleeps after 15 minutes without visitors and takes about a minute to wake on the next
-visit. The 750 free instance hours per month cover one service running all month. Render says free instances are not
-meant for production; its paid Starter instance removes the sleep. GitHub pauses scheduled workflows after 60 days
-without repository activity; re-enable *Daily billing* from the Actions tab if that happens (billing still runs on
-page loads in the meantime).
+Free-plan notes: 300 credits per month with a hard cap, shared by every project in the Netlify team. A production deploy
+costs 15 credits; Deploy Previews of pull requests and failed deploys are free; traffic and functions use a few more.
+If the credits run out, the team's sites pause until the next month, so keep heavy projects off the same team. Functions
+run in Ohio (US East), near Neon's US East region. GitHub pauses scheduled workflows after 60 days without repository
+activity; re-enable *Daily billing* from the Actions tab if that happens (billing still runs on page loads meanwhile).
 
 ## Deploy on Vercel (+ Neon)
 

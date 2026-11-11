@@ -1,0 +1,11 @@
+# Netlify: builds the app and serves it through Netlify's Next.js adapter (applied automatically).
+# Secrets (DATABASE_URL, DATABASE_URL_UNPOOLED, AUTH_SECRET, CRON_SECRET) and APP_URL go in the Netlify UI
+# (Project configuration > Environment variables), not in this file: variables set here are build-only and
+# do not reach the running site. See README "Deploy for free on Netlify".
+[build]
+  command = "node scripts/deploy-build.mjs"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "24"
+  NEXT_TELEMETRY_DISABLED = "1"
