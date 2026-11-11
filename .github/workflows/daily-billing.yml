@@ -1,6 +1,6 @@
-# Daily billing job (monthly rent, late fees, USD/DOP rate) for hosts without free cron jobs, such as Render.
-# Needs the repository secret CRON_SECRET (the same value the host uses). Set the repository variable
-# APP_URL if the site is not at https://casita-de-juana.onrender.com.
+# Daily billing job (monthly rent, late fees, USD/DOP rate) for hosts without a built-in cron, such as Netlify.
+# Needs the repository variable APP_URL (the site's address) and the repository secret CRON_SECRET (the same
+# value the site uses). Until both are set it skips with a warning.
 # Billing also runs whenever the owner or a tenant opens the app, so a missed day is caught up later.
 name: Daily billing
 
@@ -18,15 +18,14 @@ jobs:
     steps:
       - name: Call the billing endpoint
         env:
-          APP_URL: ${{ vars.APP_URL || 'https://casita-de-juana.onrender.com' }}
+          APP_URL: ${{ vars.APP_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
-          if [ -z "$CRON_SECRET" ]; then
-            echo "::warning::CRON_SECRET is not set in the repository secrets - skipping."
+          if [ -z "$APP_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "::warning::Set the repository variable APP_URL and the secret CRON_SECRET to enable daily billing - skipping."
             exit 0
           fi
-          # Render's free plan sleeps when idle; the first request can take about a minute to wake it.
           curl --fail-with-body --silent --show-error \
-            --retry 4 --retry-delay 30 --retry-all-errors --max-time 120 \
+            --retry 3 --retry-delay 20 --retry-all-errors --max-time 60 \
             -H "Authorization: Bearer $CRON_SECRET" \
             "${APP_URL%/}/api/cron/billing"
