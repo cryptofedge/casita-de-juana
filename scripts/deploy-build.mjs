@@ -1,5 +1,5 @@
-// Vercel build: create/upgrade tables, create the first owner login, then build the app.
-//   node scripts/vercel-build.mjs
+// Deploy build (Render and Vercel): create/upgrade tables, create the first owner login, then build the app.
+//   node scripts/deploy-build.mjs
 // Schema changes use `prisma db push` WITHOUT --accept-data-loss, so a destructive change fails the
 // build instead of silently deleting data. Use the direct (non-pooled) connection for DDL when available.
 import { spawnSync } from "node:child_process";

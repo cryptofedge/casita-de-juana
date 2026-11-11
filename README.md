@@ -139,10 +139,37 @@ src/
 public/brand/          logo + app icons
 ```
 
-## Deploy for free (Vercel + Neon)
+## Deploy for free on Render (+ Neon)
 
-The repo is ready for Vercel: `vercel.json` runs `scripts/vercel-build.mjs`, which creates/updates the tables,
-creates your owner login, and builds. Uploads are stored in the database, so no disk or S3 is needed.
+`render.yaml` describes the web service, and `.github/workflows/daily-billing.yml` runs the daily billing job (Render's
+free plan has no cron jobs). The build runs `scripts/deploy-build.mjs`, which creates/updates the tables, creates the
+owner login if needed, and builds. Uploads are stored in the database, so no disk or S3 is needed.
+
+1. **Database connection strings**: open the Neon project (from Vercel: *Storage* → the Neon database → *Open in Neon*),
+   click **Connect** and copy two strings: the **pooled** one (its host contains `-pooler`) and the **direct** one
+   (connection pooling turned off).
+2. **Render** (free): at https://render.com sign up with GitHub → **New → Blueprint** → choose this repository (branch
+   `master`). Paste the pooled string into `DATABASE_URL` and the direct one into `DATABASE_URL_UNPOOLED`. Render
+   generates `AUTH_SECRET` and `CRON_SECRET` itself. Click **Deploy Blueprint**; the first build takes a few minutes.
+3. Open the `*.onrender.com` link Render shows and sign in with the existing accounts (everyone is signed out once,
+   because `AUTH_SECRET` is new).
+4. **Daily billing**: copy `CRON_SECRET` from Render (the service → *Environment*). In GitHub → this repository →
+   *Settings → Secrets and variables → Actions*, add a **secret** `CRON_SECRET` with that value. If the link is not
+   `https://casita-de-juana.onrender.com`, also add a **variable** `APP_URL` with the real link. Test it with
+   *Actions → Daily billing → Run workflow*.
+5. Optional: `SETUP_CODE` (only while the real owner has not claimed the site yet), and a custom domain (Render →
+   *Settings → Custom Domains*, then set `APP_URL` to it).
+
+Free-plan notes: the service sleeps after 15 minutes without visitors and takes about a minute to wake on the next
+visit. The 750 free instance hours per month cover one service running all month. Render says free instances are not
+meant for production; its paid Starter instance removes the sleep. GitHub pauses scheduled workflows after 60 days
+without repository activity; re-enable *Daily billing* from the Actions tab if that happens (billing still runs on
+page loads in the meantime).
+
+## Deploy on Vercel (+ Neon)
+
+`vercel.json` runs `scripts/deploy-build.mjs`, which creates/updates the tables, creates your owner login, and builds.
+Uploads are stored in the database, so no disk or S3 is needed.
 
 1. **Neon database** (free): at https://neon.tech sign up with GitHub and create a project (region closest to you).
 2. **Vercel** (free Hobby plan): at https://vercel.com sign up with GitHub → *Add New… → Project* → import `casita-de-juana`.
