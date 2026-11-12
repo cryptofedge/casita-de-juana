@@ -66,6 +66,14 @@ export function fmtPeriod(period: string, locale: Loc = "en"): string {
   return s.charAt(0).toUpperCase() + s.slice(1); // Spanish months are lowercase
 }
 
+/** "Dec 2026" / "Dic 2026" - for compact month tiles. */
+export function fmtPeriodShort(period: string, locale: Loc = "en"): string {
+  const s = periodStart(period)
+    .toLocaleDateString(tag(locale), { timeZone: "UTC", month: "short", year: "numeric" })
+    .replace(".", "");
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 export function toDateInput(d: Date | string): string {
   return new Date(d).toISOString().slice(0, 10);
 }

@@ -3,8 +3,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Pencil, Plus, Scale, Trash2, UserX } from "lucide-react";
 import { db } from "@/lib/db";
-import { getLeaseLedger } from "@/lib/billing";
-import { fmtDate, toDateInput, todayLocal } from "@/lib/dates";
+import { getLeaseRentView } from "@/lib/billing";
+import { fmtDate, fmtPeriod, toDateInput, todayLocal } from "@/lib/dates";
+import { PaymentDetails, paymentCovers, RentCalendarCard } from "@/components/shared/rent-calendar";
 import { chargeLabel } from "@/lib/i18n/charge-label";
 import { CHARGE_TYPE_LABEL, DOC_TYPE_LABEL } from "@/lib/labels";
 import { moneyFormatter } from "@/lib/money";
@@ -44,7 +45,8 @@ export default async function TenantDetail({ params }: PageProps<"/admin/tenants
 
   const { display, rate } = await getMoneyContext();
   const m = moneyFormatter(display, rate);
-  const { ledger, payments } = await getLeaseLedger(lease.id);
+  const { ledger, payments, cal, uses } = await getLeaseRentView(lease.id);
+  const lm = (n: number) => m(n, lease.currency);
   const [theirContacts, docs, tickets] = await Promise.all([
     db.contact.findMany({ where: { tenantId: tenant.id }, orderBy: { name: "asc" } }),
     db.document.findMany({ where: { tenantId: tenant.id }, include: { file: true }, orderBy: { createdAt: "desc" } }),
@@ -93,7 +95,16 @@ export default async function TenantDetail({ params }: PageProps<"/admin/tenants
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label={tr("Balance")} value={m(ledger.balance, lease.currency)} tone={ledger.balance > 0 ? "bad" : "good"} sub={ledger.balance < 0 ? tr("Credit on account") : undefined} />
+        {cal.credit > 0 ? (
+          <Stat
+            label={tr("Paid ahead")}
+            value={lm(cal.credit)}
+            tone="good"
+            sub={cal.monthsAhead >= 1 && cal.paidThrough ? tr("Rent covered through {month}", { month: fmtPeriod(cal.paidThrough, locale) }) : tr("Credit on account")}
+          />
+        ) : (
+          <Stat label={tr("Balance")} value={m(ledger.balance, lease.currency)} tone={ledger.balance > 0 ? "bad" : "good"} />
+        )}
         <Stat label={tr("Overdue")} value={m(ledger.overdue, lease.currency)} tone={ledger.overdue > 0 ? "bad" : "default"} />
         <Stat label={tr("Monthly rent")} value={m(lease.monthlyRent, lease.currency)} sub={tr("Due day {day} · {days} grace days", { day: lease.dueDay, days: lease.graceDays })} />
         <Stat label={tr("Deposit")} value={m(lease.deposit, lease.currency)} sub={tr("Lease since {date}", { date: fmtDate(lease.startDate, locale) })} />
@@ -101,6 +112,7 @@ export default async function TenantDetail({ params }: PageProps<"/admin/tenants
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
+          <RentCalendarCard cal={cal} t={tr} locale={locale} money={lm} />
           <section>
             <h2 className="mb-3 text-lg font-semibold">{tr("Ledger")}</h2>
             <TableWrap>
@@ -131,12 +143,15 @@ export default async function TenantDetail({ params }: PageProps<"/admin/tenants
             <h2 className="mb-3 text-lg font-semibold">{tr("Payment history")}</h2>
             {payments.length === 0 ? <EmptyState title={tr("No payments yet")} /> : (
               <TableWrap>
-                <thead><tr><Th>{tr("Date")}</Th><Th>{tr("Method")}</Th><Th className="text-right">{tr("Amount")}</Th><Th>{tr("Receipt")}</Th><Th><span className="sr-only">{tr("Actions")}</span></Th></tr></thead>
+                <thead><tr><Th>{tr("Date")}</Th><Th>{tr("Method")}</Th><Th>{tr("Details")}</Th><Th className="text-right">{tr("Amount")}</Th><Th>{tr("Receipt")}</Th><Th><span className="sr-only">{tr("Actions")}</span></Th></tr></thead>
                 <tbody>
                   {payments.map((p) => (
                     <tr key={p.id}>
-                      <Td>{fmtDate(p.paidAt, locale)}</Td>
-                      <Td><PaymentMethodSelect paymentId={p.id} method={p.method} />{p.reference ? <span className="block text-xs text-muted-foreground">{p.reference}</span> : null}{p.note ? <span className="block text-xs text-muted-foreground">{p.note}</span> : null}</Td>
+                      <Td className="whitespace-nowrap">{fmtDate(p.paidAt, locale)}</Td>
+                      <Td><PaymentMethodSelect paymentId={p.id} method={p.method} /></Td>
+                      <Td className="min-w-48 text-xs">
+                        <PaymentDetails covers={paymentCovers(uses.get(p.id), tr, locale, lm)} reference={p.reference} note={p.note} tr={tr} />
+                      </Td>
                       <Td className="text-right font-semibold tabular-nums">{m(p.amount, lease.currency)}</Td>
                       <Td>{p.receipt ? <FileLink id={p.receipt.id} name={p.receipt.filename} mime={p.receipt.mime} label={tr("View")} /> : "-"}</Td>
                       <Td className="text-right">

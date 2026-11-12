@@ -1,9 +1,9 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { CheckCircle2, Megaphone, Phone, Pin, PlusCircle, Zap } from "lucide-react";
+import { CheckCircle2, Megaphone, Phone, Pin, PlusCircle, Sparkles, Zap } from "lucide-react";
 import { db } from "@/lib/db";
-import { getLeaseLedger, runBillingThrottled } from "@/lib/billing";
-import { fmtDate, todayLocal } from "@/lib/dates";
+import { getLeaseRentView, runBillingThrottled } from "@/lib/billing";
+import { fmtDate, fmtPeriod, todayLocal } from "@/lib/dates";
 import { getI18n } from "@/lib/i18n/server";
 import { chargeLabel } from "@/lib/i18n/charge-label";
 import { PAYMENT_STATUS_LABEL } from "@/lib/labels";
@@ -29,7 +29,8 @@ export default async function PortalHome() {
   await runBillingThrottled();
   const { display, rate } = await getMoneyContext(lease.currency);
   const m = moneyFormatter(display, rate);
-  const { ledger } = await getLeaseLedger(lease.id);
+  const { ledger, cal } = await getLeaseRentView(lease.id);
+  const paidAhead = cal.monthsAhead >= 1 && cal.paidThrough;
 
   const now = new Date();
   const [notices, openTickets] = await Promise.all([
@@ -61,13 +62,29 @@ export default async function PortalHome() {
         </Link>
       ))}
 
-      <Card className={`p-5 ${hasOverdue ? "border-destructive/40" : ""}`}>
-        <div className="text-sm text-muted-foreground">{owes ? t("Balance due") : ledger.balance < 0 ? t("Credit on your account") : t("Your balance")}</div>
-        <div className={`font-display text-4xl font-semibold ${hasOverdue ? "text-destructive" : owes ? "text-foreground" : "text-success"}`}>
-          {m(Math.abs(ledger.balance), lease.currency)}
-        </div>
-        {!owes && ledger.balance === 0 && (
-          <div className="mt-1 flex items-center gap-1.5 text-sm font-medium text-success"><CheckCircle2 className="size-4" /> {t("You're all paid up")}</div>
+      <Card className={`p-5 ${hasOverdue ? "border-destructive/40" : paidAhead ? "border-primary/40 bg-info-soft/40" : ""}`}>
+        {paidAhead ? (
+          <>
+            <div className="flex items-center gap-1.5 text-sm font-medium text-primary"><Sparkles className="size-4" /> {t("Your rent is paid through")}</div>
+            <div className="font-display text-4xl font-semibold text-success">{fmtPeriod(cal.paidThrough!, locale)}</div>
+            <div className="mt-1 flex items-center gap-1.5 text-sm font-medium text-success">
+              <CheckCircle2 className="size-4" /> {t("{amount} paid in advance", { amount: m(cal.credit, lease.currency) })}
+            </div>
+            {cal.nextUnpaid && <div className="mt-1 text-sm text-muted-foreground">{t("Next rent: {month}", { month: fmtPeriod(cal.nextUnpaid, locale) })}</div>}
+          </>
+        ) : (
+          <>
+            <div className="text-sm text-muted-foreground">{owes ? t("Balance due") : ledger.balance < 0 ? t("Credit on your account") : t("Your balance")}</div>
+            <div className={`font-display text-4xl font-semibold ${hasOverdue ? "text-destructive" : owes ? "text-foreground" : "text-success"}`}>
+              {m(Math.abs(ledger.balance), lease.currency)}
+            </div>
+            {!owes && ledger.balance === 0 && (
+              <div className="mt-1 flex items-center gap-1.5 text-sm font-medium text-success"><CheckCircle2 className="size-4" /> {t("You're all paid up")}</div>
+            )}
+            {ledger.balance < 0 && cal.future[0] && (
+              <div className="mt-1 text-sm text-muted-foreground">{t("Goes toward {month} rent", { month: fmtPeriod(cal.future[0], locale) })}</div>
+            )}
+          </>
         )}
         {hasOverdue && <div className="mt-1 text-sm font-medium text-destructive">{t("{amount} is overdue", { amount: m(ledger.overdue, lease.currency) })}</div>}
         {next && (

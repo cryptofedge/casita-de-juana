@@ -3,7 +3,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Download, Plus, Printer, RefreshCw } from "lucide-react";
 import { db } from "@/lib/db";
-import { runBilling } from "@/lib/billing";
+import { getLeaseRentView, runBilling } from "@/lib/billing";
+import { PaymentDetails, paymentCovers } from "@/components/shared/rent-calendar";
 import { currentPeriod, fmtDate, fmtPeriod, todayLocal, toDateInput } from "@/lib/dates";
 import { PAYMENT_METHOD_LABEL } from "@/lib/labels";
 import { moneyFormatter } from "@/lib/money";
@@ -44,6 +45,10 @@ export default async function FinancePage({ searchParams }: PageProps<"/admin/fi
       include: { lease: { include: { unit: true, tenant: true } }, receipt: true },
     }),
   ]);
+  // What each recent payment paid for (incl. months paid ahead), worked out per lease.
+  const views = new Map(
+    await Promise.all([...new Set(recent.map((p) => p.leaseId))].map(async (id) => [id, await getLeaseRentView(id)] as const)),
+  );
   const options = activeLeases.map((l) => ({ id: l.id, unit: l.unit.label, tenant: l.tenant.name, currency: l.currency }));
   const today = toDateInput(todayLocal());
 
@@ -126,14 +131,22 @@ export default async function FinancePage({ searchParams }: PageProps<"/admin/fi
       ) : (
         <TableWrap>
           <thead>
-            <tr><Th>{tr("Date")}</Th><Th>{tr("Unit")}</Th><Th>{tr("Method")}</Th><Th className="text-right">{tr("Amount")}</Th><Th>{tr("Receipt")}</Th><Th><span className="sr-only">{tr("Actions")}</span></Th></tr>
+            <tr><Th>{tr("Date")}</Th><Th>{tr("Unit")}</Th><Th>{tr("Method")}</Th><Th>{tr("Details")}</Th><Th className="text-right">{tr("Amount")}</Th><Th>{tr("Receipt")}</Th><Th><span className="sr-only">{tr("Actions")}</span></Th></tr>
           </thead>
           <tbody>
             {recent.map((p) => (
               <tr key={p.id}>
-                <Td>{fmtDate(p.paidAt, locale)}</Td>
+                <Td className="whitespace-nowrap">{fmtDate(p.paidAt, locale)}</Td>
                 <Td><span className="font-semibold">{p.lease.unit.label}</span> <span className="text-muted-foreground">{p.lease.tenant.name}</span></Td>
-                <Td>{tr(PAYMENT_METHOD_LABEL[p.method])}{p.reference ? <span className="block text-xs text-muted-foreground">{p.reference}</span> : null}</Td>
+                <Td>{tr(PAYMENT_METHOD_LABEL[p.method])}</Td>
+                <Td className="min-w-48 text-xs">
+                  <PaymentDetails
+                    covers={paymentCovers(views.get(p.leaseId)?.uses.get(p.id), tr, locale, (n) => m(n, p.lease.currency))}
+                    reference={p.reference}
+                    note={p.note}
+                    tr={tr}
+                  />
+                </Td>
                 <Td className="text-right font-semibold tabular-nums">{m(p.amount, p.lease.currency)}</Td>
                 <Td>{p.receipt ? <FileLink id={p.receipt.id} name={p.receipt.filename} mime={p.receipt.mime} label={tr("View")} /> : <span className="text-muted-foreground">-</span>}</Td>
                 <Td className="text-right">

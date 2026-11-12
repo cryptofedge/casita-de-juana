@@ -474,6 +474,7 @@ const admin: Record<string, string> = {
   "The tenant signs in with this email.": "El inquilino inicia sesión con este correo.",
   "Edit unit": "Editar unidad",
   "Save unit": "Guardar unidad",
+  "Rent covered through {month}": "Alquiler cubierto hasta {month}",
 };
 
 export default admin;

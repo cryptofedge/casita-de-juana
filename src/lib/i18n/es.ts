@@ -190,6 +190,29 @@ const es: Record<string, string> = {
   "File content does not match its type.": "El contenido del archivo no coincide con su tipo.",
   "File is too large (max 4 MB).": "El archivo es demasiado grande (máx. 4 MB).",
   "Display currency": "Moneda mostrada",
+  // Rent calendar / paid ahead
+  "Rent calendar": "Calendario de alquiler",
+  "Paid ahead": "Pagado por adelantado",
+  "Part paid ahead": "Parte por adelantado",
+  "Partly paid": "Pagado en parte",
+  "Not paid yet": "Sin pagar aún",
+  "This month": "Este mes",
+  "Rent paid ahead through {month}": "Alquiler pagado por adelantado hasta {month}",
+  "{amount} paid in advance covers 1 more month.": "{amount} pagados por adelantado cubren 1 mes más.",
+  "{amount} paid in advance covers {n} more months.": "{amount} pagados por adelantado cubren {n} meses más.",
+  "Money paid ahead covers the next months' rent in order. New charges, like electricity, are paid from it first.":
+    "El dinero pagado por adelantado cubre el alquiler de los próximos meses, en orden. Los cargos nuevos, como la luz, se pagan primero con ese dinero.",
+  "Rent - {month} (paid ahead)": "Alquiler - {month} (por adelantado)",
+  "Rent - {from} to {to} (paid ahead)": "Alquiler - {from} a {to} (por adelantado)",
+  "Credit for later months": "Crédito para meses futuros",
+  "Paid through {month}": "Pagado hasta {month}",
+  "Your rent is paid through": "Su alquiler está pagado hasta",
+  "{amount} paid in advance": "{amount} pagados por adelantado",
+  "Next rent: {month}": "Próximo alquiler: {month}",
+  "Goes toward {month} rent": "Se aplicará al alquiler de {month}",
+  "Paid for:": "Pagó:",
+  "Ref:": "Ref.:",
+  "Note:": "Nota:",
 };
 
 export default es;
