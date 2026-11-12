@@ -16,7 +16,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
       <div className="flex min-h-dvh">
         <AdminSidebar />
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="no-print sticky top-0 z-30 flex items-center gap-3 border-b bg-background/90 px-4 py-2.5 backdrop-blur">
+          <header className="no-print safe-top sticky top-0 z-30 flex items-center gap-3 border-b bg-background/90 px-4 pb-2.5 backdrop-blur">
             <AdminMobileMenu />
             <Logo size={32} className="lg:hidden" />
             <div className="ml-auto flex items-center gap-2 sm:gap-3">

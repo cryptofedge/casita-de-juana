@@ -14,8 +14,8 @@ export default async function PortalLayout({ children }: LayoutProps<"/portal">)
   const { locale, t } = await getI18n();
   return (
     <I18nProvider locale={locale}>
-      <div className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col">
-        <header className="sticky top-0 z-30 flex items-center justify-between gap-2 border-b bg-background/95 px-4 py-2.5 backdrop-blur">
+      <div className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col md:max-w-3xl lg:max-w-4xl">
+        <header className="safe-top sticky top-0 z-30 flex items-center justify-between gap-2 border-b bg-background/95 px-4 pb-2.5 backdrop-blur">
           <BrandMark subtitle={lease ? `${t("Apt {unit}", { unit: lease.unit.label })} · ${user.name.split(" ")[0]}` : user.name} />
           <div className="flex flex-col items-end gap-1">
             <CurrencyToggle value={currency} />
@@ -25,7 +25,7 @@ export default async function PortalLayout({ children }: LayoutProps<"/portal">)
         <main className="flex-1 px-4 pb-28 pt-5">{children}</main>
         <nav
           aria-label={t("Main")}
-          className="safe-bottom fixed inset-x-0 bottom-0 z-30 mx-auto flex max-w-2xl border-t bg-card/95 backdrop-blur"
+          className="safe-bottom fixed inset-x-0 bottom-0 z-30 mx-auto flex max-w-2xl border-t bg-card/95 backdrop-blur md:max-w-3xl lg:max-w-4xl"
         >
           <TabLink href="/portal" exact icon={<Home />}>{t("Home")}</TabLink>
           <TabLink href="/portal/payments" icon={<Receipt />}>{t("Rent")}</TabLink>

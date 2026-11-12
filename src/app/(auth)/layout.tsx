@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { LanguageToggle } from "@/components/shared/language-toggle";
+import { DownloadAppButton } from "@/components/shared/install-app";
 import { I18nProvider } from "@/lib/i18n/provider";
 import { getI18n } from "@/lib/i18n/server";
 
@@ -18,6 +19,9 @@ export default async function AuthLayout({ children }: LayoutProps<"/">) {
             <p className="text-sm text-muted-foreground">{t("Tenant portal & property office")}</p>
           </div>
           {children}
+          <div className="mt-4 flex justify-center">
+            <DownloadAppButton variant="outline" className="w-full" />
+          </div>
         </div>
       </main>
     </I18nProvider>
