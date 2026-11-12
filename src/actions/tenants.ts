@@ -14,6 +14,7 @@ import {
   fail,
   inviteTenantSchema,
   leaseUpdateSchema,
+  tenantContactSchema,
   unitSchema,
   type ActionResult,
 } from "@/lib/validators";
@@ -105,6 +106,23 @@ export async function regenerateInviteAction(userId: string): Promise<ActionResu
   const invite = newInvite();
   await db.user.update({ where: { id: userId }, data: invite });
   return { ok: true, data: { link: inviteLink(invite.inviteToken) } };
+}
+
+/** Owner: correct a tenant's name, sign-in email or phone. Their password and data are untouched. */
+export async function updateTenantContactAction(fd: FormData): Promise<ActionResult> {
+  await assertOwner();
+  const p = parseForm(tenantContactSchema, fd);
+  if (!p.ok) return p.result;
+  const d = p.data;
+  const user = await db.user.findUnique({ where: { id: d.userId } });
+  if (!user || user.role !== "TENANT") return fail("Tenant not found.");
+  if (d.email !== user.email && (await db.user.findUnique({ where: { email: d.email } }))) {
+    return fail("A user with that email already exists.", { email: ["Email already in use"] });
+  }
+  await db.user.update({ where: { id: user.id }, data: { name: d.name, email: d.email, phone: d.phone || null } });
+  revalidatePath("/admin", "layout");
+  revalidatePath("/portal", "layout");
+  return { ok: true };
 }
 
 export async function updateLeaseAction(fd: FormData): Promise<ActionResult> {

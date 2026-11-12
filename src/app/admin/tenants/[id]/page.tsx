@@ -16,7 +16,7 @@ import { endLeaseAction as endLease } from "@/actions/tenants";
 import { AdjustBalanceForm, ChargeForm, EditPaymentForm, PaymentForm } from "@/components/admin/finance-forms";
 import { adjustmentBase } from "@/lib/adjust";
 import { todayLocal as todayLocalDate } from "@/lib/dates";
-import { DepositForm, LeaseForm, ResetLinkButton } from "@/components/admin/tenant-forms";
+import { DepositForm, LeaseForm, ResetLinkButton, TenantContactForm } from "@/components/admin/tenant-forms";
 import { ActionButton } from "@/components/forms/action-button";
 import { FormDialog } from "@/components/forms/form-dialog";
 import { Badge, PaymentStatusBadge, TicketStatusBadge } from "@/components/ui/badge";
@@ -169,6 +169,9 @@ export default async function TenantDetail({ params }: PageProps<"/admin/tenants
               </dl>
               {lease.active && (
                 <>
+                  <FormDialog trigger={<Button variant="outline" className="w-full"><Pencil /> {tr("Edit contact details")}</Button>} title="Edit contact details">
+                    <TenantContactForm tenant={{ id: tenant.id, name: tenant.name, email: tenant.email, phone: tenant.phone ?? "" }} />
+                  </FormDialog>
                   <FormDialog trigger={<Button variant="outline" className="w-full"><Pencil /> {tr("Edit lease terms")}</Button>} title="Edit lease">
                     <LeaseForm lease={{
                       id: lease.id, startDate: toDateInput(lease.startDate), endDate: lease.endDate ? toDateInput(lease.endDate) : "",
