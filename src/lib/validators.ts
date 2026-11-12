@@ -72,6 +72,11 @@ export const inviteTenantSchema = z.object({
   deposit: money,
 });
 
+/** Owner edits a tenant's name, sign-in email and phone. */
+export const tenantContactSchema = inviteTenantSchema
+  .pick({ name: true, email: true, phone: true })
+  .extend({ userId: z.string().min(1) });
+
 export const leaseUpdateSchema = inviteTenantSchema
   .pick({
     startDate: true,

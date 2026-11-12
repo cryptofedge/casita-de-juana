@@ -469,6 +469,9 @@ const admin: Record<string, string> = {
   "Choose a file to upload.": "Elija un archivo para subir.",
   "Leases and IDs must be assigned to a tenant.": "Los contratos y las identificaciones deben asignarse a un inquilino.",
   "Choose a tenant": "Elija un inquilino",
+  "Edit contact details": "Editar datos de contacto",
+  "Save contact details": "Guardar datos de contacto",
+  "The tenant signs in with this email.": "El inquilino inicia sesión con este correo.",
 };
 
 export default admin;

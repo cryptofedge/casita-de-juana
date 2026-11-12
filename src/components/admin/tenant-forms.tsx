@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
-import { createUnitAction, inviteTenantAction, regenerateInviteAction, updateDepositAction, updateLeaseAction } from "@/actions/tenants";
+import { createUnitAction, inviteTenantAction, regenerateInviteAction, updateDepositAction, updateLeaseAction, updateTenantContactAction } from "@/actions/tenants";
 import { useActionForm } from "@/components/forms/use-action-form";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { ActionButton } from "@/components/forms/action-button";
 import { Button } from "@/components/ui/button";
 import { Field, FormError, Input, Select, Textarea } from "@/components/ui/form-controls";
-import { depositSchema, inviteTenantSchema, leaseUpdateSchema, unitSchema } from "@/lib/validators";
+import { depositSchema, inviteTenantSchema, leaseUpdateSchema, tenantContactSchema, unitSchema } from "@/lib/validators";
 import { useT } from "@/lib/i18n/provider";
 
 export function CopyLink({ link, label = "Invitation link" }: { link: string; label?: string }) {
@@ -184,6 +184,32 @@ export function LeaseForm({
       <Field label="Security deposit" htmlFor="l-dep" error={err("deposit")}><Input id="l-dep" inputMode="decimal" {...form.register("deposit")} /></Field>
       <p className="text-xs text-muted-foreground">{t("Changing the rent affects future months only; charges already created are not rewritten.")}</p>
       <SubmitButton pending={pending} className="w-full">{t("Save lease")}</SubmitButton>
+    </form>
+  );
+}
+
+export function TenantContactForm({ tenant }: { tenant: { id: string; name: string; email: string; phone: string } }) {
+  const { t } = useT();
+  const { form, submit, pending, serverError, err } = useActionForm({
+    schema: tenantContactSchema,
+    defaultValues: { userId: tenant.id, name: tenant.name, email: tenant.email, phone: tenant.phone },
+    action: updateTenantContactAction,
+    resetOnSuccess: false,
+  });
+  return (
+    <form method="post" onSubmit={submit} className="space-y-4" noValidate>
+      <FormError message={serverError} />
+      <input type="hidden" {...form.register("userId")} />
+      <Field label="Full name" htmlFor="c-name" error={err("name")}>
+        <Input id="c-name" autoComplete="off" {...form.register("name")} />
+      </Field>
+      <Field label="Email" htmlFor="c-email" error={err("email")} hint="The tenant signs in with this email.">
+        <Input id="c-email" type="email" inputMode="email" autoComplete="off" {...form.register("email")} />
+      </Field>
+      <Field label="Phone / WhatsApp" htmlFor="c-phone" error={err("phone")}>
+        <Input id="c-phone" type="tel" autoComplete="off" {...form.register("phone")} />
+      </Field>
+      <SubmitButton pending={pending} className="w-full">{t("Save contact details")}</SubmitButton>
     </form>
   );
 }
