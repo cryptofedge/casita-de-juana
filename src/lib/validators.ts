@@ -57,6 +57,9 @@ export const unitSchema = z.object({
   notes: optional(),
 });
 
+/** Owner edits an existing unit (name, floor, bedrooms, notes). */
+export const unitUpdateSchema = unitSchema.extend({ unitId: z.string().min(1) });
+
 export const inviteTenantSchema = z.object({
   name: z.string().trim().min(2, "Required").max(100),
   email: z.string().trim().toLowerCase().pipe(z.email("Enter a valid email")),

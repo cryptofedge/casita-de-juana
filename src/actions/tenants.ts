@@ -16,6 +16,7 @@ import {
   leaseUpdateSchema,
   tenantContactSchema,
   unitSchema,
+  unitUpdateSchema,
   type ActionResult,
 } from "@/lib/validators";
 
@@ -42,6 +43,26 @@ export async function createUnitAction(fd: FormData): Promise<ActionResult> {
     data: { label, floor: +p.data.floor, bedrooms: +p.data.bedrooms, notes: p.data.notes || null },
   });
   revalidatePath("/admin", "layout");
+  return { ok: true };
+}
+
+/** Owner: correct a unit's name, floor, bedrooms or notes. Leases, charges and readings stay attached. */
+export async function updateUnitAction(fd: FormData): Promise<ActionResult> {
+  await assertOwner();
+  const p = parseForm(unitUpdateSchema, fd);
+  if (!p.ok) return p.result;
+  const unit = await db.unit.findUnique({ where: { id: p.data.unitId } });
+  if (!unit) return fail("Unit not found.");
+  const label = p.data.label.toUpperCase();
+  if (label !== unit.label && (await db.unit.findUnique({ where: { label } }))) {
+    return fail(`Unit ${label} already exists.`, { label: ["Already exists"] });
+  }
+  await db.unit.update({
+    where: { id: unit.id },
+    data: { label, floor: +p.data.floor, bedrooms: +p.data.bedrooms, notes: p.data.notes || null },
+  });
+  revalidatePath("/admin", "layout");
+  revalidatePath("/portal", "layout");
   return { ok: true };
 }
 
