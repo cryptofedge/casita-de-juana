@@ -1,7 +1,7 @@
 import { getI18n } from "@/lib/i18n/server";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Building2, Plus, UserPlus } from "lucide-react";
+import { Building2, Pencil, Plus, UserPlus } from "lucide-react";
 import { db } from "@/lib/db";
 import { runBilling } from "@/lib/billing";
 import { toDateInput, todayLocal } from "@/lib/dates";
@@ -9,7 +9,7 @@ import { buildLedger } from "@/lib/ledger";
 import { moneyFormatter } from "@/lib/money";
 import { getMoneyContext } from "@/lib/settings";
 import { toggleUnitAction } from "@/actions/tenants";
-import { InviteTenantForm, UnitForm } from "@/components/admin/tenant-forms";
+import { EditUnitForm, InviteTenantForm, UnitForm } from "@/components/admin/tenant-forms";
 import { ActionButton } from "@/components/forms/action-button";
 import { FormDialog } from "@/components/forms/form-dialog";
 import { Badge, PaymentStatusBadge } from "@/components/ui/badge";
@@ -73,7 +73,12 @@ export default async function TenantsPage() {
                       <div className="font-display text-xl font-semibold">{tr("Apt {unit}", { unit: u.label })}</div>
                       <div className="text-sm text-muted-foreground">{tr(u.bedrooms === 1 ? "{n} bed" : "{n} beds", { n: u.bedrooms })}{u.notes ? ` · ${u.notes}` : ""}</div>
                     </div>
-                    {!u.active ? <Badge>{tr("Inactive")}</Badge> : lease ? <Badge tone="green">{tr("Occupied")}</Badge> : <Badge tone="amber">{tr("Vacant")}</Badge>}
+                    <div className="flex items-center gap-1">
+                      {!u.active ? <Badge>{tr("Inactive")}</Badge> : lease ? <Badge tone="green">{tr("Occupied")}</Badge> : <Badge tone="amber">{tr("Vacant")}</Badge>}
+                      <FormDialog trigger={<Button size="icon" variant="ghost" aria-label={tr("Edit unit")}><Pencil /></Button>} title="Edit unit">
+                        <EditUnitForm unit={{ id: u.id, label: u.label, floor: String(u.floor), bedrooms: String(u.bedrooms), notes: u.notes ?? "" }} />
+                      </FormDialog>
+                    </div>
                   </div>
                   {lease && ledger && (
                     <div className="mt-3 flex items-center justify-between gap-3 border-t pt-3">

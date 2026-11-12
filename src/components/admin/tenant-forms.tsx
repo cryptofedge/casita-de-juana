@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
-import { createUnitAction, inviteTenantAction, regenerateInviteAction, updateDepositAction, updateLeaseAction, updateTenantContactAction } from "@/actions/tenants";
+import { createUnitAction, inviteTenantAction, regenerateInviteAction, updateDepositAction, updateLeaseAction, updateTenantContactAction, updateUnitAction } from "@/actions/tenants";
 import { useActionForm } from "@/components/forms/use-action-form";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { ActionButton } from "@/components/forms/action-button";
 import { Button } from "@/components/ui/button";
 import { Field, FormError, Input, Select, Textarea } from "@/components/ui/form-controls";
-import { depositSchema, inviteTenantSchema, leaseUpdateSchema, tenantContactSchema, unitSchema } from "@/lib/validators";
+import { depositSchema, inviteTenantSchema, leaseUpdateSchema, tenantContactSchema, unitSchema, unitUpdateSchema } from "@/lib/validators";
 import { useT } from "@/lib/i18n/provider";
 
 export function CopyLink({ link, label = "Invitation link" }: { link: string; label?: string }) {
@@ -69,6 +69,37 @@ export function UnitForm() {
         <Textarea id="notes" rows={2} {...form.register("notes")} />
       </Field>
       <SubmitButton pending={pending} className="w-full">{t("Add unit")}</SubmitButton>
+    </form>
+  );
+}
+
+export function EditUnitForm({ unit }: { unit: { id: string; label: string; floor: string; bedrooms: string; notes: string } }) {
+  const { t } = useT();
+  const { form, submit, pending, serverError, err } = useActionForm({
+    schema: unitUpdateSchema,
+    defaultValues: { unitId: unit.id, label: unit.label, floor: unit.floor, bedrooms: unit.bedrooms, notes: unit.notes },
+    action: updateUnitAction,
+    resetOnSuccess: false,
+  });
+  return (
+    <form method="post" onSubmit={submit} className="space-y-4" noValidate>
+      <FormError message={serverError} />
+      <input type="hidden" {...form.register("unitId")} />
+      <div className="grid grid-cols-3 gap-3">
+        <Field label="Unit name" htmlFor="u-label" error={err("label")}>
+          <Input id="u-label" {...form.register("label")} />
+        </Field>
+        <Field label="Floor" htmlFor="u-floor" error={err("floor")}>
+          <Input id="u-floor" inputMode="numeric" {...form.register("floor")} />
+        </Field>
+        <Field label="Bedrooms" htmlFor="u-bedrooms" error={err("bedrooms")}>
+          <Input id="u-bedrooms" inputMode="numeric" {...form.register("bedrooms")} />
+        </Field>
+      </div>
+      <Field label="Notes (optional)" htmlFor="u-notes" error={err("notes")}>
+        <Textarea id="u-notes" rows={2} {...form.register("notes")} />
+      </Field>
+      <SubmitButton pending={pending} className="w-full">{t("Save unit")}</SubmitButton>
     </form>
   );
 }
