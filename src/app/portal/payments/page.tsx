@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { getLeaseLedger } from "@/lib/billing";
+import { getLeaseRentView } from "@/lib/billing";
+import { paymentCovers, RentCalendarCard } from "@/components/shared/rent-calendar";
 import { fmtDate } from "@/lib/dates";
 import { getI18n } from "@/lib/i18n/server";
 import { chargeLabel } from "@/lib/i18n/charge-label";
@@ -31,7 +32,8 @@ export default async function PortalPayments() {
   const { display, rate } = await getMoneyContext(lease.currency);
   const m = moneyFormatter(display, rate);
   // Scoped to the signed-in tenant's own lease (from the session, never from the URL)
-  const { ledger, payments } = await getLeaseLedger(lease.id);
+  const { ledger, payments, cal, uses } = await getLeaseRentView(lease.id);
+  const lm = (n: number) => m(n, lease.currency);
   const rows = [...ledger.rows].reverse();
   const submissions = await db.paymentSubmission.findMany({ where: { leaseId: lease.id }, orderBy: { createdAt: "desc" }, take: 10, include: { receipt: true } });
 
@@ -40,13 +42,15 @@ export default async function PortalPayments() {
       <h1 className="text-2xl font-semibold">{t("Rent & payments")}</h1>
 
       <Card className="p-4">
-        <div className="text-sm text-muted-foreground">{ledger.balance < 0 ? t("Credit") : t("Balance")}</div>
+        <div className="text-sm text-muted-foreground">{ledger.balance < 0 ? (cal.monthsAhead >= 1 ? t("Paid ahead") : t("Credit")) : t("Balance")}</div>
         <div className={`font-display text-3xl font-semibold ${ledger.balance > 0 ? "text-destructive" : "text-success"}`}>{m(Math.abs(ledger.balance), lease.currency)}</div>
         <div className="mt-3 flex justify-between border-t pt-3 text-sm">
           <span className="text-muted-foreground">{t("Monthly rent")} <strong className="text-foreground">{m(lease.monthlyRent, lease.currency)}</strong></span>
           <span className="text-muted-foreground">{t("Due day")} <strong className="text-foreground">{lease.dueDay}</strong></span>
         </div>
       </Card>
+
+      <RentCalendarCard cal={cal} t={t} locale={locale} money={lm} />
 
       <FormDialog
         trigger={<Button size="lg" className="w-full"><Plus /> {t("I made a payment")}</Button>}
@@ -107,9 +111,10 @@ export default async function PortalPayments() {
           <div className="space-y-2">
             {payments.map((p) => (
               <Card key={p.id} className="flex items-center justify-between gap-3 p-4">
-                <div>
+                <div className="min-w-0">
                   <div className="font-semibold tabular-nums text-success">{m(p.amount, lease.currency)}</div>
                   <div className="text-xs text-muted-foreground">{fmtDate(p.paidAt, locale)} · {t(PAYMENT_METHOD_LABEL[p.method])}{p.reference ? ` · ${p.reference}` : ""}</div>
+                  {uses.get(p.id)?.length ? <div className="mt-1 text-xs"><span className="text-muted-foreground">{t("Paid for:")}</span> {paymentCovers(uses.get(p.id), t, locale, lm)}</div> : null}
                 </div>
                 {p.receipt && <FileLink id={p.receipt.id} name={p.receipt.filename} mime={p.receipt.mime} label={t("Receipt")} />}
               </Card>

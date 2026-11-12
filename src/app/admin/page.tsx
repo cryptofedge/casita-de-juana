@@ -20,6 +20,8 @@ import {
   todayLocal,
 } from "@/lib/dates";
 import { buildLedger } from "@/lib/ledger";
+import { rentCalendar } from "@/lib/rent-calendar";
+import { paidAheadShort } from "@/components/shared/rent-calendar";
 import { convert, moneyFormatter } from "@/lib/money";
 import { CATEGORY_LABEL } from "@/lib/labels";
 import { getMoneyContext } from "@/lib/settings";
@@ -74,10 +76,18 @@ export default async function AdminDashboard() {
 
   const cv = (amt: number, cur: "USD" | "DOP") =>
     convert(amt, cur, display, rate);
-  const ledgers = leases.map((l) => ({
-    lease: l,
-    ledger: buildLedger(l.charges, l.payments, today, l.graceDays),
-  }));
+  const ledgers = leases.map((l) => {
+    const ledger = buildLedger(l.charges, l.payments, today, l.graceDays);
+    const cal = rentCalendar({
+      rows: ledger.rows,
+      balance: ledger.balance,
+      monthlyRent: l.monthlyRent,
+      leaseStart: l.startDate,
+      leaseEnd: l.endDate,
+      nowPeriod: nowP,
+    });
+    return { lease: l, ledger, cal };
+  });
 
   const collectedThisMonth = recentPayments
     .filter((p) => p.paidAt >= periodStart(nowP) && p.paidAt < periodEnd(nowP))
@@ -283,9 +293,10 @@ export default async function AdminDashboard() {
                         {open > 0
                           ? tr("{amount} due", { amount: m(open, display) })
                           : open < 0
-                            ? tr("{amount} credit", {
+                            ? (paidAheadShort(x.cal, tr, locale) ??
+                              tr("{amount} credit", {
                                 amount: m(-open, display),
-                              })
+                              }))
                             : tr("Settled")}
                       </div>
                     </div>

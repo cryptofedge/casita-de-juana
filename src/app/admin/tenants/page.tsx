@@ -4,8 +4,10 @@ import type { Metadata } from "next";
 import { Building2, Pencil, Plus, UserPlus } from "lucide-react";
 import { db } from "@/lib/db";
 import { runBilling } from "@/lib/billing";
-import { toDateInput, todayLocal } from "@/lib/dates";
+import { currentPeriod, toDateInput, todayLocal } from "@/lib/dates";
 import { buildLedger } from "@/lib/ledger";
+import { rentCalendar } from "@/lib/rent-calendar";
+import { paidAheadShort } from "@/components/shared/rent-calendar";
 import { moneyFormatter } from "@/lib/money";
 import { getMoneyContext } from "@/lib/settings";
 import { toggleUnitAction } from "@/actions/tenants";
@@ -24,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export const dynamic = "force-dynamic";
 
 export default async function TenantsPage() {
-  const { t: tr } = await getI18n();
+  const { t: tr, locale } = await getI18n();
   await runBilling();
   const { display, rate } = await getMoneyContext();
   const m = moneyFormatter(display, rate);
@@ -65,6 +67,14 @@ export default async function TenantsPage() {
             {units.filter((u) => u.floor === floor).map((u) => {
               const lease = u.leases[0];
               const ledger = lease ? buildLedger(lease.charges, lease.payments, today, lease.graceDays) : null;
+              const ahead =
+                lease && ledger && ledger.balance < 0
+                  ? paidAheadShort(
+                      rentCalendar({ rows: ledger.rows, balance: ledger.balance, monthlyRent: lease.monthlyRent, leaseStart: lease.startDate, leaseEnd: lease.endDate, nowPeriod: currentPeriod() }),
+                      tr,
+                      locale,
+                    )
+                  : null;
               const worst = ledger?.rows.find((r) => r.status === "OVERDUE") ?? ledger?.rows.find((r) => r.status === "PARTIAL");
               return (
                 <Card key={u.id} className={`p-4 ${!u.active ? "opacity-60" : ""}`}>
@@ -89,7 +99,7 @@ export default async function TenantsPage() {
                       <div className="text-right">
                         {worst && <PaymentStatusBadge status={worst.status} />}
                         <div className={`mt-1 text-sm font-semibold ${ledger.balance > 0 ? "text-destructive" : "text-success"}`}>
-                          {ledger.balance > 0 ? tr("{amount} due", { amount: m(ledger.balance, lease.currency) }) : tr("Settled")}
+                          {ledger.balance > 0 ? tr("{amount} due", { amount: m(ledger.balance, lease.currency) }) : (ahead ?? tr("Settled"))}
                         </div>
                       </div>
                     </div>

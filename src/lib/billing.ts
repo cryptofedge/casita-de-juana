@@ -10,6 +10,7 @@ import {
   addDays,
 } from "./dates";
 import { buildLedger, computeLateFee } from "./ledger";
+import { allocatePayments, rentCalendar } from "./rent-calendar";
 
 /**
  * Generates any missing monthly RENT charges (from each lease's start month
@@ -93,5 +94,20 @@ export async function getLeaseLedger(leaseId: string) {
     db.payment.findMany({ where: { leaseId }, orderBy: { paidAt: "desc" }, include: { receipt: true } }),
   ]);
   const ledger = buildLedger(charges, payments, todayLocal(), lease.graceDays);
-  return { lease, ledger, payments };
+  return { lease, ledger, payments, charges };
+}
+
+/** Rent calendar (incl. months paid in advance) and what each payment paid for, for one lease. */
+export async function getLeaseRentView(leaseId: string) {
+  const { lease, ledger, payments, charges } = await getLeaseLedger(leaseId);
+  const cal = rentCalendar({
+    rows: ledger.rows,
+    balance: ledger.balance,
+    monthlyRent: lease.monthlyRent,
+    leaseStart: lease.startDate,
+    leaseEnd: lease.endDate,
+    nowPeriod: currentPeriod(),
+  });
+  const uses = allocatePayments({ charges, payments, future: cal.future, monthlyRent: lease.monthlyRent });
+  return { lease, ledger, payments, charges, cal, uses };
 }
