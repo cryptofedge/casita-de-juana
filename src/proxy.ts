@@ -21,5 +21,6 @@ export default function proxy(request: NextRequest, event: NextFetchEvent) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|brand|icon.png|apple-icon.png|.*\\.(?:png|jpg|svg|ico|webp)$).*)"],
+  // Public files the installed app needs (service worker, offline page, manifest) skip the gate.
+  matcher: ["/((?!api|_next/static|_next/image|brand|icon.png|apple-icon.png|sw.js|offline.html|manifest.webmanifest|.*\\.(?:png|jpg|svg|ico|webp)$).*)"],
 };

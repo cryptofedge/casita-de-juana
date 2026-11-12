@@ -6,6 +6,7 @@ import { requireTenant } from "@/lib/session";
 import { getI18n } from "@/lib/i18n/server";
 
 import { Card } from "@/components/ui/card";
+import { InstallApp } from "@/components/shared/install-app";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getI18n();
@@ -29,6 +30,7 @@ export default async function More() {
         <div className="font-semibold">{user.name}</div>
         <div className="text-sm text-muted-foreground">{user.email}{lease ? ` · ${t("Apt {unit}", { unit: lease.unit.label })}` : ""}</div>
       </Card>
+      <InstallApp />
       <Card className="divide-y">
         {LINKS.map((l) => (
           <Link key={l.href} href={l.href} className="flex items-center gap-3 px-4 py-4 active:bg-secondary">

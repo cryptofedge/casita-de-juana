@@ -13,6 +13,7 @@ import { requireTenant } from "@/lib/session";
 import { PaymentStatusBadge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/shared/page";
+import { InstallApp } from "@/components/shared/install-app";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getI18n();
@@ -82,7 +83,7 @@ export default async function PortalHome() {
         <Link href="/portal/payments" className="mt-3 inline-block text-sm font-semibold text-primary">{t("View rent & payment history →")}</Link>
       </Card>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Link href="/portal/requests/new" className="flex flex-col items-center gap-2 rounded-xl border bg-card p-4 text-center text-sm font-semibold shadow-sm active:bg-secondary">
           <PlusCircle className="size-7 text-accent" /> {t("Report a problem")}
           {openTickets > 0 && <span className="text-xs font-normal text-muted-foreground">{t("{n} open", { n: openTickets })}</span>}
@@ -97,6 +98,8 @@ export default async function PortalHome() {
           <Megaphone className="size-7 text-primary" /> {t("Notice board")}
         </Link>
       </div>
+
+      <InstallApp variant="banner" />
 
       {notices.filter((n) => !n.pinned).length > 0 && (
         <section>

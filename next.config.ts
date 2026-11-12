@@ -17,6 +17,14 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "same-origin" },
         ],
       },
+      {
+        // The installed app must always pick up a new service worker right away.
+        source: "/sw.js",
+        headers: [
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+          { key: "Content-Type", value: "application/javascript; charset=utf-8" },
+        ],
+      },
     ];
   },
 };
