@@ -127,3 +127,12 @@ body {
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
 }
+
+/* Touch screens have overlay scrollbars, so an open dialog never needs room for one. The dialog library
+   reserves "scrollbar" space as innerWidth - clientWidth, which on a phone can be hundreds of pixels if
+   anything makes the page wider than the screen - pushing the page aside and the dialog off-screen. */
+@media (pointer: coarse) {
+  html body[data-scroll-locked] {
+    margin-right: 0 !important;
+  }
+}

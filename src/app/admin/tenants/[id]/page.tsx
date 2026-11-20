@@ -110,7 +110,7 @@ export default async function TenantDetail({ params }: PageProps<"/admin/tenants
         <Stat label={tr("Deposit")} value={m(lease.deposit, lease.currency)} sub={tr("Lease since {date}", { date: fmtDate(lease.startDate, locale) })} />
       </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-3">
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <RentCalendarCard cal={cal} t={tr} locale={locale} money={lm} />
           <section>

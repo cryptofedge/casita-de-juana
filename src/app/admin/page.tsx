@@ -236,7 +236,7 @@ export default async function AdminDashboard() {
         />
       </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-5">
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-5">
         <section className="lg:col-span-3">
           <h2 className="mb-3 text-lg font-semibold">{tr("Units")}</h2>
           <div className="space-y-3">

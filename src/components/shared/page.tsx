@@ -94,10 +94,15 @@ export function FileLink({
   );
 }
 
-/** Small scrolling table wrapper that stays usable on phones. */
+/**
+ * Small scrolling table wrapper that stays usable on phones.
+ * `relative` matters: it makes the wrapper the containing block of absolutely positioned bits inside the
+ * table (e.g. the `sr-only` "Actions" header). Without it they escaped the scroll box, phones laid the whole
+ * page out wider than the screen, and dialogs (Approve payment) opened off-screen behind a dimmed page.
+ */
 export function TableWrap({ children }: { children: React.ReactNode }) {
   return (
-    <div className="overflow-x-auto rounded-xl border bg-card">
+    <div className="relative overflow-x-auto rounded-xl border bg-card">
       <table className="w-full min-w-[34rem] text-sm">{children}</table>
     </div>
   );
