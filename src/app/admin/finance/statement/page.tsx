@@ -30,7 +30,7 @@ export default async function StatementPage({ searchParams }: PageProps<"/admin/
         <Link href={`/admin/finance?month=${month}`} className="text-sm font-medium text-primary hover:underline">← {tr("Back")}</Link>
         <PrintButton />
       </div>
-      <article className="print-area rounded-xl border bg-white p-6 shadow-sm sm:p-8">
+      <article className="print-area relative overflow-x-auto rounded-xl border bg-white p-6 shadow-sm sm:p-8 print:overflow-visible">
         <header className="flex items-center justify-between gap-4 border-b pb-4">
           <div className="flex items-center gap-3">
             <Logo size={56} />

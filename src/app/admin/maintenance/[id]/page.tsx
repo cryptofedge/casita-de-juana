@@ -36,7 +36,7 @@ export default async function AdminTicket({ params }: PageProps<"/admin/maintena
   return (
     <>
       <BackLink href="/admin/maintenance">{tr("All requests")}</BackLink>
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <h1 className="text-2xl font-semibold">{ticket.title}</h1>
           <div className="mb-4 mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
