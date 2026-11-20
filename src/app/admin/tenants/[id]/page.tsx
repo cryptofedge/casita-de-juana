@@ -23,7 +23,7 @@ import { FormDialog } from "@/components/forms/form-dialog";
 import { Badge, PaymentStatusBadge, TicketStatusBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BackLink, EmptyState, FileLink, PageHeader, Stat, TableWrap, Td, Th } from "@/components/shared/page";
+import { BackLink, EmptyState, FileLink, PageHeader, ReceiptThumb, Stat, TableWrap, Td, Th } from "@/components/shared/page";
 import Link from "next/link";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -47,6 +47,18 @@ export default async function TenantDetail({ params }: PageProps<"/admin/tenants
   const m = moneyFormatter(display, rate);
   const { ledger, payments, cal, uses } = await getLeaseRentView(lease.id);
   const lm = (n: number) => m(n, lease.currency);
+  const paymentActions = (p: (typeof payments)[number]) => (
+    <>
+      <FormDialog trigger={<Button size="sm" variant="ghost" aria-label={tr("Edit payment")}><Pencil /></Button>} title="Edit payment">
+        <EditPaymentForm
+          currency={lease.currency}
+          charges={ledger.rows.filter((r) => r.amount > 0).map((r) => ({ id: r.id, label: `${chargeLabel(r, tr, locale)} · ${m(r.amount, lease.currency)}` }))}
+          payment={{ id: p.id, amount: (p.amount / 100).toFixed(2), method: p.method, paidAt: toDateInput(p.paidAt), chargeId: p.chargeId ?? "", reference: p.reference ?? "", note: p.note ?? "" }}
+        />
+      </FormDialog>
+      <ActionButton size="sm" variant="ghost" aria-label={tr("Delete payment")} confirm={tr("Delete this payment?")} action={deletePaymentAction.bind(null, p.id)}><Trash2 /></ActionButton>
+    </>
+  );
   const [theirContacts, docs, tickets] = await Promise.all([
     db.contact.findMany({ where: { tenantId: tenant.id }, orderBy: { name: "asc" } }),
     db.document.findMany({ where: { tenantId: tenant.id }, include: { file: true }, orderBy: { createdAt: "desc" } }),
@@ -142,6 +154,31 @@ export default async function TenantDetail({ params }: PageProps<"/admin/tenants
           <section>
             <h2 className="mb-3 text-lg font-semibold">{tr("Payment history")}</h2>
             {payments.length === 0 ? <EmptyState title={tr("No payments yet")} /> : (
+              <>
+              {/* Phones: one card per payment, with the tenant's screenshot visible (the table would hide it off-screen). */}
+              <div className="space-y-2 sm:hidden">
+                {payments.map((p) => (
+                  <Card key={p.id} className="p-3">
+                    <div className="flex gap-3">
+                      {p.receipt && <ReceiptThumb file={p.receipt} label={tr("Receipt")} />}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="text-sm text-muted-foreground">{fmtDate(p.paidAt, locale)}</span>
+                          <span className="font-semibold tabular-nums">{m(p.amount, lease.currency)}</span>
+                        </div>
+                        <div className="mt-1 text-xs">
+                          <PaymentDetails covers={paymentCovers(uses.get(p.id), tr, locale, lm)} reference={p.reference} note={p.note} tr={tr} />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-2 flex items-center justify-between gap-2">
+                      <PaymentMethodSelect paymentId={p.id} method={p.method} />
+                      <div className="flex shrink-0">{paymentActions(p)}</div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+              <div className="hidden sm:block">
               <TableWrap>
                 <thead><tr><Th>{tr("Date")}</Th><Th>{tr("Method")}</Th><Th>{tr("Details")}</Th><Th className="text-right">{tr("Amount")}</Th><Th>{tr("Receipt")}</Th><Th><span className="sr-only">{tr("Actions")}</span></Th></tr></thead>
                 <tbody>
@@ -153,20 +190,14 @@ export default async function TenantDetail({ params }: PageProps<"/admin/tenants
                         <PaymentDetails covers={paymentCovers(uses.get(p.id), tr, locale, lm)} reference={p.reference} note={p.note} tr={tr} />
                       </Td>
                       <Td className="text-right font-semibold tabular-nums">{m(p.amount, lease.currency)}</Td>
-                      <Td>{p.receipt ? <FileLink id={p.receipt.id} name={p.receipt.filename} mime={p.receipt.mime} label={tr("View")} /> : "-"}</Td>
-                      <Td className="text-right">
-                        <FormDialog trigger={<Button size="sm" variant="ghost" aria-label={tr("Edit payment")}><Pencil /></Button>} title="Edit payment">
-                          <EditPaymentForm
-                            currency={lease.currency}
-                            charges={ledger.rows.filter((r) => r.amount > 0).map((r) => ({ id: r.id, label: `${chargeLabel(r, tr, locale)} · ${m(r.amount, lease.currency)}` }))}
-                            payment={{ id: p.id, amount: (p.amount / 100).toFixed(2), method: p.method, paidAt: toDateInput(p.paidAt), chargeId: p.chargeId ?? "", reference: p.reference ?? "", note: p.note ?? "" }}
-                          />
-                        </FormDialog>
-                        <ActionButton size="sm" variant="ghost" aria-label={tr("Delete payment")} confirm={tr("Delete this payment?")} action={deletePaymentAction.bind(null, p.id)}><Trash2 /></ActionButton></Td>
+                      <Td>{p.receipt ? <ReceiptThumb file={p.receipt} label={tr("Receipt")} className="size-12" /> : "-"}</Td>
+                      <Td className="whitespace-nowrap text-right">{paymentActions(p)}</Td>
                     </tr>
                   ))}
                 </tbody>
               </TableWrap>
+              </div>
+              </>
             )}
           </section>
         </div>

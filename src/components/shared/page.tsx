@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { FileText, ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -90,6 +91,28 @@ export function FileLink({
     >
       <Icon className="size-4" />
       <span className="max-w-48 truncate">{label ?? name}</span>
+    </a>
+  );
+}
+
+/**
+ * Tappable picture of an uploaded receipt or payment screenshot; opens the full-size file in a new tab.
+ * PDFs and HEIC photos (which most browsers can't show inline) get a plain link instead.
+ */
+export function ReceiptThumb({
+  file,
+  label,
+  className,
+}: {
+  file: { id: string; filename: string; mime: string };
+  label: string;
+  className?: string;
+}) {
+  const isImg = file.mime.startsWith("image/") && file.mime !== "image/heic";
+  if (!isImg) return <FileLink id={file.id} name={file.filename} mime={file.mime} label={label} />;
+  return (
+    <a href={`/api/files/${file.id}`} target="_blank" rel="noopener noreferrer" aria-label={label} className="block shrink-0">
+      <Image src={`/api/files/${file.id}`} alt={label} width={64} height={64} unoptimized className={cn("size-16 rounded-lg border bg-muted object-cover", className)} />
     </a>
   );
 }
