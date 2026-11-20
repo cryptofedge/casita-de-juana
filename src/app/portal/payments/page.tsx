@@ -17,7 +17,7 @@ import { requireTenant } from "@/lib/session";
 import { getMoneyContext } from "@/lib/settings";
 import { PaymentStatusBadge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { EmptyState, FileLink } from "@/components/shared/page";
+import { EmptyState, ReceiptThumb } from "@/components/shared/page";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getI18n();
@@ -76,7 +76,7 @@ export default async function PortalPayments() {
                   </Badge>
                 </div>
                 {s.status === "REJECTED" && s.rejectReason && <div className="mt-2 text-sm text-destructive">{t("Reason: {reason}", { reason: s.rejectReason })}</div>}
-                <div className="mt-2"><FileLink id={s.receipt.id} name={s.receipt.filename} mime={s.receipt.mime} label={t("Receipt")} /></div>
+                <div className="mt-2"><ReceiptThumb file={s.receipt} label={t("Receipt")} className="size-12" /></div>
               </Card>
             ))}
           </div>
@@ -116,7 +116,7 @@ export default async function PortalPayments() {
                   <div className="text-xs text-muted-foreground">{fmtDate(p.paidAt, locale)} · {t(PAYMENT_METHOD_LABEL[p.method])}{p.reference ? ` · ${p.reference}` : ""}</div>
                   {uses.get(p.id)?.length ? <div className="mt-1 text-xs"><span className="text-muted-foreground">{t("Paid for:")}</span> {paymentCovers(uses.get(p.id), t, locale, lm)}</div> : null}
                 </div>
-                {p.receipt && <FileLink id={p.receipt.id} name={p.receipt.filename} mime={p.receipt.mime} label={t("Receipt")} />}
+                {p.receipt && <ReceiptThumb file={p.receipt} label={t("Receipt")} className="size-12" />}
               </Card>
             ))}
           </div>

@@ -17,7 +17,8 @@ import { ActionButton } from "@/components/forms/action-button";
 import { FormDialog } from "@/components/forms/form-dialog";
 import { Button } from "@/components/ui/button";
 import { PaymentStatusBadge } from "@/components/ui/badge";
-import { EmptyState, FileLink, PageHeader, Stat, TableWrap, Td, Th } from "@/components/shared/page";
+import { Card } from "@/components/ui/card";
+import { EmptyState, PageHeader, ReceiptThumb, Stat, TableWrap, Td, Th } from "@/components/shared/page";
 import { Trash2 } from "lucide-react";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -48,6 +49,13 @@ export default async function FinancePage({ searchParams }: PageProps<"/admin/fi
   // What each recent payment paid for (incl. months paid ahead), worked out per lease.
   const views = new Map(
     await Promise.all([...new Set(recent.map((p) => p.leaseId))].map(async (id) => [id, await getLeaseRentView(id)] as const)),
+  );
+  const coversFor = (p: (typeof recent)[number]) =>
+    paymentCovers(views.get(p.leaseId)?.uses.get(p.id), tr, locale, (n) => m(n, p.lease.currency));
+  const deleteButton = (paymentId: string) => (
+    <ActionButton size="sm" variant="ghost" aria-label={tr("Delete payment")} confirm={tr("Delete this payment? The tenant balance will increase.")} action={deletePaymentAction.bind(null, paymentId)}>
+      <Trash2 />
+    </ActionButton>
   );
   const options = activeLeases.map((l) => ({ id: l.id, unit: l.unit.label, tenant: l.tenant.name, currency: l.currency }));
   const today = toDateInput(todayLocal());
@@ -129,6 +137,31 @@ export default async function FinancePage({ searchParams }: PageProps<"/admin/fi
       {recent.length === 0 ? (
         <EmptyState title={tr("No payments logged yet")} />
       ) : (
+        <>
+        {/* Phones: one card per payment, with the tenant's screenshot visible (the table would hide it off-screen). */}
+        <div className="space-y-2 sm:hidden">
+          {recent.map((p) => (
+            <Card key={p.id} className="flex gap-3 p-3">
+              {p.receipt && <ReceiptThumb file={p.receipt} label={tr("Receipt")} />}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline justify-between gap-2">
+                  <div className="min-w-0 text-sm">
+                    <span className="font-semibold">{p.lease.unit.label}</span> <span className="text-muted-foreground">{p.lease.tenant.name}</span>
+                  </div>
+                  <div className="font-semibold tabular-nums">{m(p.amount, p.lease.currency)}</div>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {fmtDate(p.paidAt, locale)} · {tr(PAYMENT_METHOD_LABEL[p.method])}
+                </div>
+                <div className="mt-1 text-xs">
+                  <PaymentDetails covers={coversFor(p)} reference={p.reference} note={p.note} tr={tr} />
+                </div>
+              </div>
+              {deleteButton(p.id)}
+            </Card>
+          ))}
+        </div>
+        <div className="hidden sm:block">
         <TableWrap>
           <thead>
             <tr><Th>{tr("Date")}</Th><Th>{tr("Unit")}</Th><Th>{tr("Method")}</Th><Th>{tr("Details")}</Th><Th className="text-right">{tr("Amount")}</Th><Th>{tr("Receipt")}</Th><Th><span className="sr-only">{tr("Actions")}</span></Th></tr>
@@ -140,24 +173,17 @@ export default async function FinancePage({ searchParams }: PageProps<"/admin/fi
                 <Td><span className="font-semibold">{p.lease.unit.label}</span> <span className="text-muted-foreground">{p.lease.tenant.name}</span></Td>
                 <Td>{tr(PAYMENT_METHOD_LABEL[p.method])}</Td>
                 <Td className="min-w-48 text-xs">
-                  <PaymentDetails
-                    covers={paymentCovers(views.get(p.leaseId)?.uses.get(p.id), tr, locale, (n) => m(n, p.lease.currency))}
-                    reference={p.reference}
-                    note={p.note}
-                    tr={tr}
-                  />
+                  <PaymentDetails covers={coversFor(p)} reference={p.reference} note={p.note} tr={tr} />
                 </Td>
                 <Td className="text-right font-semibold tabular-nums">{m(p.amount, p.lease.currency)}</Td>
-                <Td>{p.receipt ? <FileLink id={p.receipt.id} name={p.receipt.filename} mime={p.receipt.mime} label={tr("View")} /> : <span className="text-muted-foreground">-</span>}</Td>
-                <Td className="text-right">
-                  <ActionButton size="sm" variant="ghost" aria-label={tr("Delete payment")} confirm={tr("Delete this payment? The tenant balance will increase.")} action={deletePaymentAction.bind(null, p.id)}>
-                    <Trash2 />
-                  </ActionButton>
-                </Td>
+                <Td>{p.receipt ? <ReceiptThumb file={p.receipt} label={tr("Receipt")} className="size-12" /> : <span className="text-muted-foreground">-</span>}</Td>
+                <Td className="text-right">{deleteButton(p.id)}</Td>
               </tr>
             ))}
           </tbody>
         </TableWrap>
+        </div>
+        </>
       )}
     </>
   );
